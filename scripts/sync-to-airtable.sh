@@ -118,26 +118,40 @@ echo "  Syncing cron jobs..."
 CRON_FILE="$OPENCLAW_HOME/cron/jobs.json"
 if [[ -f "$CRON_FILE" ]]; then
   python3 -c "
-import json, sys
+import json, sys, datetime
 with open('$CRON_FILE') as f:
-    jobs = json.load(f)
+    data = json.load(f)
+
+jobs = data.get('jobs', data) if isinstance(data, dict) else data
 
 records = []
 for job in jobs:
-    last_run = job.get('lastRun', {})
+    state = job.get('state', {})
+    schedule = job.get('schedule', {})
+    schedule_str = schedule.get('expr', str(schedule)) if isinstance(schedule, dict) else str(schedule)
+    payload = job.get('payload', {})
+    prompt = payload.get('message', '') if isinstance(payload, dict) else ''
+
+    last_run_ms = state.get('lastRunAtMs', 0)
+    last_run_str = ''
+    if last_run_ms:
+        last_run_str = datetime.datetime.fromtimestamp(last_run_ms / 1000, tz=datetime.timezone.utc).isoformat()
+
+    duration_s = (state.get('lastDurationMs', 0) or 0) / 1000
+
     records.append({
         'Name': job.get('name', 'unknown'),
-        'Schedule': job.get('schedule', ''),
-        'Status': 'error' if job.get('consecutiveErrors', 0) > 0 else 'active',
-        'LastRun': last_run.get('startedAt', ''),
-        'LastResult': 'success' if last_run.get('status') == 'success' else ('error' if last_run.get('status') else ''),
-        'LastDuration': last_run.get('durationSeconds', 0) or 0,
-        'ConsecutiveErrors': job.get('consecutiveErrors', 0),
-        'Description': job.get('prompt', '')[:500],
+        'Schedule': schedule_str,
+        'Status': 'error' if state.get('consecutiveErrors', 0) > 0 else ('active' if job.get('enabled', True) else 'paused'),
+        'LastRun': last_run_str,
+        'LastResult': state.get('lastRunStatus', ''),
+        'LastDuration': round(duration_s, 1),
+        'ConsecutiveErrors': state.get('consecutiveErrors', 0),
+        'Description': prompt[:500],
         'UpdatedAt': '$(date -u +%Y-%m-%dT%H:%M:%SZ)'
     })
 print(json.dumps(records))
-" | xargs -0 -I{} echo '{}' > /tmp/cron_records.json
+" > /tmp/cron_records.json
   airtable_replace_all "CronJobs" "$(cat /tmp/cron_records.json)"
 fi
 
