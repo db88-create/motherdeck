@@ -309,3 +309,23 @@ if __name__ == '__main__':
     sync_usage()
     sync_skills()
     print(f"[{datetime.datetime.now()}] Sync complete.")
+
+
+# ============ USAGE METRICS ============
+def sync_usage():
+    """Sync usage data from session files to Airtable."""
+    import subprocess
+    result = subprocess.run(
+        ['python3', os.path.join(os.path.dirname(__file__), 'usage-sync.py')],
+        capture_output=True, text=True, timeout=60
+    )
+    print(result.stdout)
+    if result.stderr:
+        print(result.stderr)
+
+# Run usage sync
+print("  Syncing usage metrics...")
+try:
+    sync_usage()
+except Exception as e:
+    print(f"  Usage sync error: {e}")
