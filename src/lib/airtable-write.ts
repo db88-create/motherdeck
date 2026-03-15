@@ -306,3 +306,47 @@ export async function createExpense(data: {
     return { success: false, error: err.message };
   }
 }
+
+
+// ============ BRIEFS ============
+
+export async function createBrief(data: {
+  date: string;
+  title: string;
+  summary: string;
+  keyInsights?: string;
+  bigIdea?: string;
+  fullContent: string;
+  highlights?: string[];
+}): Promise<WriteResult> {
+  try {
+    if (!data.title?.trim()) {
+      return { success: false, error: "Brief title is required" };
+    }
+    if (data.date && !isValidDate(data.date)) {
+      return { success: false, error: "Invalid date format. Use YYYY-MM-DD" };
+    }
+
+    const fields: Record<string, any> = {
+      Date: data.date || new Date().toISOString().split("T")[0],
+      Title: data.title.trim(),
+      Summary: data.summary || "",
+      KeyInsights: data.keyInsights || "",
+      BigIdea: data.bigIdea || "",
+      FullContent: data.fullContent || "",
+      Highlights: data.highlights?.join(", ") || "",
+      TopicsCount: (data.highlights || []).length,
+      CreatedAt: new Date().toISOString(),
+    };
+
+    const base = getBase();
+    const records = await base("Briefs").create([{ fields }]);
+    const record = records[0];
+
+    console.log(`[airtable-write] Created brief: "${data.title}" (${record.id})`);
+    return { success: true, id: record.id };
+  } catch (err: any) {
+    console.error(`[airtable-write] Failed to create brief: ${err.message}`);
+    return { success: false, error: err.message };
+  }
+}

@@ -142,7 +142,10 @@ export interface BriefFields {
   Date: string;
   Title: string;
   Summary: string;
+  KeyInsights?: string;
+  BigIdea?: string;
   FullContent: string;
+  Highlights?: string;
   TopicsCount: number;
   CreatedAt: string;
 }
