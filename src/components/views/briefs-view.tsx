@@ -1,68 +1,9 @@
 "use client";
 
-function cleanBriefContent(raw: string): string {
-  if (!raw) return "";
-  // Strip CSS block (everything from first { to the closing of @media or last })
-  // Find where actual content starts (after CSS rules end)
-  const lines = raw.split("
-");
-  let contentStart = 0;
-  let braceDepth = 0;
-  let inCss = false;
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (i < 5 && (line.startsWith("* {") || line.startsWith("body {") || line === "* {")) {
-      inCss = true;
-    }
-    if (inCss) {
-      braceDepth += (line.match(/{/g) || []).length;
-      braceDepth -= (line.match(/}/g) || []).length;
-      if (braceDepth <= 0 && i > 2) {
-        // Check if next non-empty line is still CSS
-        const nextLine = lines.slice(i + 1).find((l) => l.trim());
-        if (
-          nextLine &&
-          (nextLine.trim().match(/^[.#@a-z]/i) &&
-            nextLine.includes("{"))
-        ) {
-          continue; // Still CSS
-        }
-        contentStart = i + 1;
-        inCss = false;
-      }
-      continue;
-    }
-  }
-
-  // Get content after CSS
-  let cleaned = lines.slice(contentStart).join("
-");
-
-  // Remove empty lines at start
-  cleaned = cleaned.replace(/^\s*
-+/, "");
-
-  // Clean up excessive whitespace but preserve structure
-  cleaned = cleaned
-    .split("
-")
-    .map((l) => l.replace(/^\s{4,}/, "  ")) // reduce deep indentation
-    .join("
-")
-    .replace(/
-{3,}/g, "
-
-"); // max 2 newlines
-
-  return cleaned.trim();
-}
-
 import { useFetch } from "@/lib/hooks";
 import { Brief } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
@@ -82,12 +23,64 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+function cleanBriefContent(raw: string): string {
+  if (!raw) return "";
+  const lines = raw.split("\n");
+  let contentStart = 0;
+  let braceDepth = 0;
+  let inCss = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    // Detect CSS start
+    if (
+      !inCss &&
+      i < 5 &&
+      (line === "* {" || line.startsWith("* {") || line.startsWith("body {"))
+    ) {
+      inCss = true;
+    }
+    if (inCss) {
+      braceDepth += (line.match(/{/g) || []).length;
+      braceDepth -= (line.match(/}/g) || []).length;
+      // Check if we've closed all braces and next content isn't CSS
+      if (braceDepth <= 0 && i > 2) {
+        const nextLine = lines
+          .slice(i + 1)
+          .find((l) => l.trim().length > 0);
+        if (
+          nextLine &&
+          /^[.#@a-z]/i.test(nextLine.trim()) &&
+          nextLine.includes("{")
+        ) {
+          continue;
+        }
+        contentStart = i + 1;
+        inCss = false;
+      }
+      continue;
+    }
+  }
+
+  let cleaned = lines.slice(contentStart).join("\n");
+  cleaned = cleaned.replace(/^\s*\n+/, "");
+  cleaned = cleaned
+    .split("\n")
+    .map((l) => l.replace(/^\s{4,}/, "  "))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n");
+
+  return cleaned.trim();
+}
+
 function BriefCard({ brief }: { brief: Brief }) {
   const [expanded, setExpanded] = useState(false);
   const f = brief.fields;
 
   const highlights = f.Highlights
-    ? f.Highlights.split(",").map((t) => t.trim()).filter(Boolean)
+    ? f.Highlights.split(",")
+        .map((t) => t.trim())
+        .filter(Boolean)
     : [];
 
   const formattedDate = f.Date
@@ -137,7 +130,6 @@ function BriefCard({ brief }: { brief: Brief }) {
 
       {expanded && (
         <CardContent className="pt-0 space-y-4">
-          {/* Executive Summary */}
           {f.Summary && (
             <div>
               <div className="flex items-center gap-1.5 mb-1.5">
@@ -152,7 +144,6 @@ function BriefCard({ brief }: { brief: Brief }) {
             </div>
           )}
 
-          {/* Key Insights */}
           {f.KeyInsights && (
             <div>
               <div className="flex items-center gap-1.5 mb-1.5">
@@ -167,7 +158,6 @@ function BriefCard({ brief }: { brief: Brief }) {
             </div>
           )}
 
-          {/* Big Idea */}
           {f.BigIdea && (
             <div className="bg-violet-500/10 border border-violet-500/20 rounded-lg p-3">
               <div className="flex items-center gap-1.5 mb-1.5">
@@ -182,7 +172,6 @@ function BriefCard({ brief }: { brief: Brief }) {
             </div>
           )}
 
-          {/* Read Full Brief */}
           {f.FullContent && (
             <Dialog>
               <DialogTrigger className="inline-flex items-center gap-1.5 text-sm text-violet-400 hover:text-violet-300 transition-colors">
@@ -191,14 +180,12 @@ function BriefCard({ brief }: { brief: Brief }) {
               </DialogTrigger>
               <DialogContent className="bg-zinc-900 border-zinc-800 max-w-2xl max-h-[85vh]">
                 <DialogHeader>
-                  <DialogTitle className="text-white">
-                    {f.Title}
-                  </DialogTitle>
+                  <DialogTitle className="text-white">{f.Title}</DialogTitle>
                   <p className="text-xs text-zinc-500">{formattedDate}</p>
                 </DialogHeader>
                 <ScrollArea className="max-h-[65vh] pr-4">
                   <div className="text-sm text-zinc-300 leading-relaxed whitespace-pre-line">
-                    {f.FullContent}
+                    {cleanBriefContent(f.FullContent)}
                   </div>
                 </ScrollArea>
               </DialogContent>
@@ -229,7 +216,10 @@ export function BriefsView() {
         <div className="flex items-center gap-2">
           <Newspaper className="w-5 h-5 text-violet-400" />
           <h2 className="text-lg font-semibold text-white">Brief Archive</h2>
-          <Badge variant="outline" className="border-zinc-700 text-zinc-400 text-xs">
+          <Badge
+            variant="outline"
+            className="border-zinc-700 text-zinc-400 text-xs"
+          >
             {briefsList.length}
           </Badge>
         </div>
