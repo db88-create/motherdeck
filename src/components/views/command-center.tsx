@@ -1,24 +1,32 @@
 "use client";
 
-import { useFetch } from "@/lib/hooks";
-import { CronJob, Session, Gateway, Alert } from "@/lib/types";
+import { useState, useRef } from "react";
+import { useFetch, useApi } from "@/lib/hooks";
+import { useNotes, Note } from "@/lib/hooks/useNotes";
+import { useVoiceRecording } from "@/lib/hooks/useVoiceRecording";
+import { CronJob, Gateway, Alert } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 import {
-  Activity,
   Server,
   Clock,
   AlertTriangle,
   CheckCircle,
   XCircle,
   DollarSign,
-  Cpu,
+  Mic,
+  MicOff,
+  Lightbulb,
+  CheckSquare,
+  Trash2,
+  Send,
 } from "lucide-react";
 
 interface CommandData {
   cronJobs: CronJob[];
-  sessions: Session[];
+  sessions: any[];
   gateway: Gateway | null;
   alerts: Alert[];
   todaySpend: number;
@@ -34,217 +42,491 @@ export function CommandCenter() {
   if (loading) return <LoadingSkeleton />;
   if (!data) return <EmptyState />;
 
-  const spendPct = Math.min((data.todaySpend / data.dailyBudget) * 100, 100);
-  const gw = data.gateway?.fields;
-
   return (
     <div className="space-y-6 max-w-5xl">
-      <h1 className="text-2xl font-semibold text-[var(--md-text-primary)]">Command Center</h1>
+      <h1 className="text-2xl font-semibold text-[var(--md-text-primary)]">
+        Command Center
+      </h1>
 
-      {/* Top cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-[var(--md-bg)]">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Server className="w-4 h-4 text-[var(--md-text-tertiary)]" />
-                <span className="text-sm text-[var(--md-text-secondary)]">Gateway</span>
-              </div>
-              <Badge
-                variant={gw?.Status === "online" ? "default" : "destructive"}
-                className={
-                  gw?.Status === "online"
-                    ? "bg-emerald-50 text-emerald-600 border-emerald-200"
-                    : ""
-                }
-              >
-                {gw?.Status || "unknown"}
-              </Badge>
-            </div>
-            {gw && (
-              <div className="mt-3 space-y-1">
-                <p className="text-xs text-[var(--md-text-tertiary)]">
-                  Uptime: {gw.Uptime}
-                </p>
-                <p className="text-xs text-[var(--md-text-tertiary)]">
-                  Memory: {gw.MemoryMB} MB
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {/* Stats Row */}
+      <StatsRow data={data} />
 
-        <Card className="bg-[var(--md-bg)]">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="w-4 h-4 text-[var(--md-text-tertiary)]" />
-              <span className="text-sm text-[var(--md-text-secondary)]">Today&apos;s Spend</span>
-            </div>
-            <p className="text-2xl font-semibold text-[var(--md-text-primary)]">
-              ${data.todaySpend.toFixed(2)}
-            </p>
-            <Progress value={spendPct} className="mt-2 h-2" />
-            <p className="text-xs text-[var(--md-text-tertiary)] mt-1">
-              ${data.dailyBudget.toFixed(2)} daily budget
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-[var(--md-bg)]">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 mb-2">
-              <Cpu className="w-4 h-4 text-[var(--md-text-tertiary)]" />
-              <span className="text-sm text-[var(--md-text-secondary)]">Active Sessions</span>
-            </div>
-            <p className="text-2xl font-semibold text-[var(--md-text-primary)]">
-              {data.sessions.length}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-[var(--md-bg)]">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="w-4 h-4 text-[var(--md-text-tertiary)]" />
-              <span className="text-sm text-[var(--md-text-secondary)]">Active Alerts</span>
-            </div>
-            <p className="text-2xl font-semibold text-[var(--md-text-primary)]">
-              {data.alerts.length}
-            </p>
-          </CardContent>
-        </Card>
+      {/* Main Content: Brain Dump + Errors/Cron */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3">
+          <BrainDumpCanvas />
+        </div>
+        <div className="lg:col-span-2 space-y-6">
+          <ErrorsSection alerts={data.alerts} />
+          <CronJobsCompact cronJobs={data.cronJobs} />
+        </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Sessions */}
-      {data.sessions.length > 0 && (
-        <Card className="bg-[var(--md-bg)]">
-          <CardHeader>
-            <CardTitle className="text-[var(--md-text-primary)] text-lg flex items-center gap-2">
-              <Activity className="w-5 h-5" /> Active Sessions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {data.sessions.map((s) => (
-              <div
-                key={s.id}
-                className="flex items-center justify-between p-3 rounded-lg bg-[var(--md-bg-alt)] border border-[var(--md-border)]"
-              >
-                <div>
-                  <p className="text-sm font-medium text-[var(--md-text-body)]">
-                    {s.fields.Name}
-                  </p>
-                  <p className="text-xs text-[var(--md-text-tertiary)]">
-                    {s.fields.Type} &middot; {s.fields.Model}
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-24">
-                    <Progress value={s.fields.ContextPct} className="h-2" />
-                    <p className="text-xs text-[var(--md-text-tertiary)] mt-0.5 text-right">
-                      {s.fields.ContextPct}% ctx
-                    </p>
-                  </div>
-                  <p className="text-xs text-[var(--md-text-secondary)] tabular-nums">
-                    ${s.fields.Cost?.toFixed(4)}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+// ============ STATS ROW ============
 
-      {/* Cron Jobs */}
+function StatsRow({ data }: { data: CommandData }) {
+  const spendPct = Math.min(
+    (data.todaySpend / data.dailyBudget) * 100,
+    100
+  );
+  const gw = data.gateway?.fields;
+  const errorCount = data.alerts.filter(
+    (a) => a.fields.Severity === "critical" || a.fields.Severity === "warning"
+  ).length;
+
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <Card className="bg-[var(--md-bg)]">
-        <CardHeader>
-          <CardTitle className="text-[var(--md-text-primary)] text-lg flex items-center gap-2">
-            <Clock className="w-5 h-5" /> Cron Jobs
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {data.cronJobs.map((job) => (
-              <div
-                key={job.id}
-                className="p-3 rounded-lg bg-[var(--md-bg-alt)] border border-[var(--md-border)]"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-[var(--md-text-body)] truncate">
-                    {job.fields.Name}
-                  </p>
-                  {job.fields.LastResult === "success" ? (
-                    <CheckCircle className="w-4 h-4 text-[var(--md-success)] shrink-0" />
-                  ) : job.fields.LastResult === "error" ? (
-                    <XCircle className="w-4 h-4 text-[var(--md-error)] shrink-0" />
-                  ) : null}
-                </div>
-                <p className="text-xs text-[var(--md-text-tertiary)] font-mono">
-                  {job.fields.Schedule}
-                </p>
-                {job.fields.LastRun && (
-                  <p className="text-xs text-[var(--md-text-tertiary)] mt-1">
-                    Last: {new Date(job.fields.LastRun).toLocaleString()}
-                  </p>
-                )}
-                {job.fields.ConsecutiveErrors > 0 && (
-                  <Badge variant="destructive" className="mt-2 text-xs">
-                    {job.fields.ConsecutiveErrors} errors
-                  </Badge>
-                )}
-              </div>
-            ))}
+        <CardContent className="pt-5 pb-4">
+          <div className="flex items-center gap-2 mb-1">
+            <Server className="w-4 h-4 text-[var(--md-text-tertiary)]" />
+            <span className="text-xs text-[var(--md-text-secondary)]">Gateway</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div
+              className={cn(
+                "w-2 h-2 rounded-full",
+                gw?.Status === "online" ? "bg-emerald-500" : "bg-red-500"
+              )}
+            />
+            <span className="text-sm font-semibold text-[var(--md-text-primary)]">
+              {gw?.Status || "Unknown"}
+            </span>
           </div>
         </CardContent>
       </Card>
 
-      {/* Alerts */}
-      {data.alerts.length > 0 && (
-        <Card className="bg-[var(--md-bg)]">
-          <CardHeader>
-            <CardTitle className="text-[var(--md-text-primary)] text-lg flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5" /> Alerts
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {data.alerts.map((alert) => (
-              <div
-                key={alert.id}
-                className={`p-3 rounded-lg border ${
-                  alert.fields.Severity === "critical"
-                    ? "bg-red-50 border-red-200"
-                    : alert.fields.Severity === "warning"
-                    ? "bg-amber-50 border-amber-200"
-                    : "bg-blue-50 border-blue-200"
-                }`}
-              >
-                <p className="text-sm font-medium text-[var(--md-text-body)]">
-                  {alert.fields.Title}
-                </p>
-                <p className="text-xs text-[var(--md-text-secondary)] mt-1">
-                  {alert.fields.Message}
-                </p>
-              </div>
+      <Card className="bg-[var(--md-bg)]">
+        <CardContent className="pt-5 pb-4">
+          <div className="flex items-center gap-2 mb-1">
+            <DollarSign className="w-4 h-4 text-[var(--md-text-tertiary)]" />
+            <span className="text-xs text-[var(--md-text-secondary)]">Today&apos;s Spend</span>
+          </div>
+          <p className="text-lg font-semibold text-[var(--md-text-primary)] tabular-nums">
+            ${data.todaySpend.toFixed(2)}
+          </p>
+          <Progress value={spendPct} className="mt-1.5 h-1.5" />
+        </CardContent>
+      </Card>
+
+      <Card className="bg-[var(--md-bg)]">
+        <CardContent className="pt-5 pb-4">
+          <div className="flex items-center gap-2 mb-1">
+            <AlertTriangle className="w-4 h-4 text-[var(--md-text-tertiary)]" />
+            <span className="text-xs text-[var(--md-text-secondary)]">Alerts</span>
+          </div>
+          <p className="text-lg font-semibold text-[var(--md-text-primary)]">
+            {errorCount}
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-[var(--md-bg)]">
+        <CardContent className="pt-5 pb-4">
+          <div className="flex items-center gap-2 mb-1">
+            <Clock className="w-4 h-4 text-[var(--md-text-tertiary)]" />
+            <span className="text-xs text-[var(--md-text-secondary)]">Cron Jobs</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-semibold text-[var(--md-text-primary)]">
+              {data.cronJobs.length}
+            </span>
+            {data.cronJobs.some((j) => j.fields.ConsecutiveErrors > 0) && (
+              <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                errors
+              </Badge>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ============ BRAIN DUMP CANVAS ============
+
+function BrainDumpCanvas() {
+  const {
+    notes,
+    addNote,
+    removeNote,
+    markConverted,
+    setSuggestion,
+    totalNotes,
+    tasksCreated,
+    ideasCreated,
+    pending,
+  } = useNotes();
+  const { post } = useApi();
+  const [inputText, setInputText] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const voice = useVoiceRecording({
+    onTranscription: (text) => {
+      if (text.trim()) {
+        const note = addNote(text.trim());
+        if (note) {
+          setTimeout(() => requestSuggestion(text.trim(), note.id), 2000);
+        }
+      }
+    },
+  });
+
+  const handleSubmit = () => {
+    if (!inputText.trim()) return;
+    const note = addNote(inputText.trim());
+    if (note) {
+      setTimeout(() => requestSuggestion(inputText.trim(), note.id), 2000);
+    }
+    setInputText("");
+    textareaRef.current?.focus();
+  };
+
+  const requestSuggestion = async (text: string, noteId: string) => {
+    try {
+      const res = await fetch("/api/suggest-action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSuggestion(noteId, {
+          action: data.action,
+          reason: data.reason,
+          confidence: data.confidence,
+        });
+      }
+    } catch {}
+  };
+
+  const handleConvertToTask = async (note: Note) => {
+    try {
+      const res = await post("/api/tasks", {
+        name: note.text.slice(0, 200),
+        description: note.text.length > 200 ? note.text : "",
+        status: "todo",
+        priority: "medium",
+      });
+      if (res?.id) {
+        markConverted(note.id, "task", res.id);
+      }
+    } catch {}
+  };
+
+  const handleConvertToIdea = async (note: Note) => {
+    try {
+      const res = await post("/api/ideas", {
+        title: note.text.slice(0, 200),
+        description: note.text.length > 200 ? note.text : "",
+      });
+      if (res?.id) {
+        markConverted(note.id, "idea", res.id);
+      }
+    } catch {}
+  };
+
+  return (
+    <Card className="bg-[var(--md-bg)]">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-semibold text-[var(--md-text-primary)]">
+            Brain Dump
+          </CardTitle>
+          <button
+            onClick={voice.isRecording ? voice.stopRecording : voice.startRecording}
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all duration-200",
+              voice.isRecording
+                ? "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400"
+                : "text-[var(--md-text-secondary)] hover:bg-[var(--md-surface)] hover:text-[var(--md-text-body)]"
+            )}
+          >
+            {voice.isRecording ? (
+              <><MicOff className="w-4 h-4" /> Stop</>
+            ) : (
+              <><Mic className="w-4 h-4" /> Voice</>
+            )}
+          </button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Recording indicator */}
+        {voice.isRecording && (
+          <div className="flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-500/10 dark:border-red-500/20">
+            <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-sm text-red-600 dark:text-red-400">Recording...</span>
+            <span className="text-xs text-[var(--md-text-tertiary)] tabular-nums ml-auto">
+              {Math.floor(voice.duration / 60).toString().padStart(2, "0")}:
+              {(voice.duration % 60).toString().padStart(2, "0")}
+            </span>
+          </div>
+        )}
+
+        {voice.transcript && !voice.isRecording && (
+          <div className="px-4 py-3 bg-[var(--md-surface)] rounded-lg border border-[var(--md-border)]">
+            <p className="text-xs text-[var(--md-text-secondary)] mb-1">Transcribed:</p>
+            <p className="text-sm text-[var(--md-text-body)]">{voice.transcript}</p>
+          </div>
+        )}
+
+        {/* Text input */}
+        <div className="relative">
+          <textarea
+            ref={textareaRef}
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                handleSubmit();
+              }
+            }}
+            placeholder="Spew it out... Raw thoughts, ideas, tasks, anything. They'll get organized."
+            className="w-full h-28 p-4 font-mono text-sm border border-[var(--md-border)] rounded-lg bg-[var(--md-bg)] text-[var(--md-text-body)] placeholder:text-[var(--md-text-disabled)] focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none resize-none transition-colors duration-200"
+          />
+          <div className="absolute bottom-3 right-3 flex items-center gap-2">
+            <span className="text-[10px] text-[var(--md-text-disabled)]">{"\u2318"}+Enter</span>
+            <button
+              onClick={handleSubmit}
+              disabled={!inputText.trim()}
+              className={cn(
+                "p-1.5 rounded-md transition-all duration-200",
+                inputText.trim()
+                  ? "text-violet-600 hover:bg-[var(--md-highlight)]"
+                  : "text-[var(--md-text-disabled)] cursor-not-allowed"
+              )}
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Notes list */}
+        {notes.length > 0 && (
+          <div className="space-y-1.5">
+            {notes.map((note) => (
+              <NoteItem
+                key={note.id}
+                note={note}
+                onConvertToTask={() => handleConvertToTask(note)}
+                onConvertToIdea={() => handleConvertToIdea(note)}
+                onRemove={() => removeNote(note.id)}
+              />
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        )}
+
+        {/* Summary */}
+        {totalNotes > 0 && (
+          <div className="pt-4 border-t border-[var(--md-border-light)] text-sm text-[var(--md-text-secondary)]">
+            {totalNotes} capture{totalNotes !== 1 ? "s" : ""} &middot;{" "}
+            {tasksCreated} converted to tasks &middot; {ideasCreated} to ideas
+            {pending > 0 && (
+              <span className="text-[var(--md-text-tertiary)]">
+                {" "}&middot; {pending} pending
+              </span>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ============ NOTE ITEM ============
+
+function NoteItem({
+  note,
+  onConvertToTask,
+  onConvertToIdea,
+  onRemove,
+}: {
+  note: Note;
+  onConvertToTask: () => void;
+  onConvertToIdea: () => void;
+  onRemove: () => void;
+}) {
+  const time = new Date(note.timestamp).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const isConverted = !!note.converted;
+
+  return (
+    <div
+      className={cn(
+        "flex items-start gap-3 px-4 py-3 rounded-lg group transition-all duration-200",
+        isConverted
+          ? "opacity-50"
+          : "bg-[var(--md-bg-alt)] hover:bg-[var(--md-surface)]"
+      )}
+    >
+      <span className="text-xs text-[var(--md-text-tertiary)] flex-shrink-0 pt-0.5 tabular-nums">
+        {time}
+      </span>
+      <span
+        className={cn(
+          "flex-1 text-sm",
+          isConverted
+            ? "line-through text-[var(--md-text-tertiary)]"
+            : "text-[var(--md-text-body)]"
+        )}
+      >
+        {note.text}
+      </span>
+
+      {isConverted && (
+        <Badge
+          variant="outline"
+          className="text-[10px] shrink-0 border-emerald-300 text-emerald-600 dark:border-emerald-500/30 dark:text-emerald-400"
+        >
+          {note.converted === "task" ? "Task" : "Idea"}
+        </Badge>
+      )}
+
+      {!isConverted && (
+        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0">
+          {note.suggestion && note.suggestion.action !== "keep" && (
+            <span
+              className={cn(
+                "text-[10px] px-2 py-0.5 rounded-full font-medium",
+                note.suggestion.action === "task"
+                  ? "bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300"
+                  : "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+              )}
+            >
+              {note.suggestion.action === "task" ? "Task?" : "Idea?"}
+            </span>
+          )}
+          <button
+            onClick={onConvertToTask}
+            className="p-1 text-[var(--md-text-disabled)] hover:text-violet-600 transition-colors duration-200 rounded"
+            title="Convert to task"
+          >
+            <CheckSquare className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={onConvertToIdea}
+            className="p-1 text-[var(--md-text-disabled)] hover:text-amber-500 transition-colors duration-200 rounded"
+            title="Convert to idea"
+          >
+            <Lightbulb className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={onRemove}
+            className="p-1 text-[var(--md-text-disabled)] hover:text-red-500 transition-colors duration-200 rounded"
+            title="Remove"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       )}
     </div>
   );
 }
 
+// ============ ERRORS SECTION ============
+
+function ErrorsSection({ alerts }: { alerts: Alert[] }) {
+  const errors = alerts.filter(
+    (a) => a.fields.Severity === "critical" || a.fields.Severity === "warning"
+  );
+  if (errors.length === 0) return null;
+
+  return (
+    <Card className="bg-[var(--md-bg)]">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-semibold text-[var(--md-text-primary)] flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-red-500" />
+          Errors & Warnings
+          <Badge variant="destructive" className="text-[10px] ml-auto">
+            {errors.length}
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {errors.map((alert) => (
+          <div
+            key={alert.id}
+            className={cn(
+              "px-3 py-2.5 rounded-lg border text-sm",
+              alert.fields.Severity === "critical"
+                ? "bg-red-50 border-red-200 dark:bg-red-500/10 dark:border-red-500/20"
+                : "bg-amber-50 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20"
+            )}
+          >
+            <p className="font-medium text-[var(--md-text-body)] text-sm">
+              {alert.fields.Title}
+            </p>
+            <p className="text-xs text-[var(--md-text-secondary)] mt-0.5">
+              {alert.fields.Message}
+            </p>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ============ CRON JOBS COMPACT ============
+
+function CronJobsCompact({ cronJobs }: { cronJobs: CronJob[] }) {
+  if (cronJobs.length === 0) return null;
+  const recent = cronJobs.slice(0, 5);
+
+  return (
+    <Card className="bg-[var(--md-bg)]">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-semibold text-[var(--md-text-primary)] flex items-center gap-2">
+          <Clock className="w-4 h-4" /> Cron Jobs
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-1.5">
+        {recent.map((job) => (
+          <div
+            key={job.id}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--md-bg-alt)]"
+          >
+            {job.fields.LastResult === "success" ? (
+              <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+            ) : job.fields.LastResult === "error" ? (
+              <XCircle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+            ) : (
+              <Clock className="w-3.5 h-3.5 text-[var(--md-text-tertiary)] shrink-0" />
+            )}
+            <span className="text-sm text-[var(--md-text-body)] truncate flex-1">
+              {job.fields.Name}
+            </span>
+            <span className="text-[10px] text-[var(--md-text-tertiary)] font-mono shrink-0">
+              {job.fields.Schedule}
+            </span>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ============ LOADING / EMPTY ============
+
 function LoadingSkeleton() {
   return (
     <div className="space-y-6 max-w-5xl">
       <div className="h-8 w-48 bg-[var(--md-surface)] rounded animate-pulse" />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
           <div
             key={i}
-            className="h-28 bg-[var(--md-bg-alt)] border border-[var(--md-border)] rounded-xl animate-pulse"
+            className="h-24 bg-[var(--md-bg-alt)] border border-[var(--md-border)] rounded-xl animate-pulse"
           />
         ))}
       </div>
-      <div className="h-48 bg-[var(--md-bg-alt)] border border-[var(--md-border)] rounded-xl animate-pulse" />
+      <div className="h-64 bg-[var(--md-bg-alt)] border border-[var(--md-border)] rounded-xl animate-pulse" />
     </div>
   );
 }
