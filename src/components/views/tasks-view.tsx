@@ -54,17 +54,17 @@ import {
 // ============ CONSTANTS ============
 
 const PRIORITY_COLORS: Record<string, string> = {
-  urgent: "bg-red-50 text-red-600 border-red-200",
-  high: "bg-orange-50 text-orange-600 border-orange-200",
-  medium: "bg-blue-50 text-blue-600 border-blue-200",
-  low: "bg-gray-50 text-gray-500 border-gray-200",
+  urgent: "bg-red-50 text-[#ef4444] border-red-100",
+  high: "bg-orange-50 text-orange-600 border-orange-100",
+  medium: "bg-blue-50 text-[#3b82f6] border-blue-100",
+  low: "bg-[#f5f5f5] text-[#737373] border-[#e5e5e5]",
 };
 
 const PRIORITY_DOT: Record<string, string> = {
-  urgent: "bg-red-500",
-  high: "bg-orange-500",
-  medium: "bg-blue-500",
-  low: "bg-gray-400",
+  urgent: "bg-[#ef4444]",
+  high: "bg-[#f59e0b]",
+  medium: "bg-[#3b82f6]",
+  low: "bg-[#a3a3a3]",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -341,13 +341,13 @@ export function TasksView() {
 
   if (loading) {
     return (
-      <div className="space-y-5 max-w-4xl">
-        <div className="h-8 w-48 bg-gray-100 rounded animate-pulse" />
+      <div className="space-y-6 max-w-4xl">
+        <div className="h-8 w-48 bg-[#f5f5f5] rounded-lg animate-pulse" />
         <div className="space-y-2">
           {[...Array(8)].map((_, i) => (
             <div
               key={i}
-              className="h-12 bg-gray-50 rounded-lg animate-pulse"
+              className="h-14 bg-[#fafafa] rounded-lg animate-pulse"
             />
           ))}
         </div>
@@ -360,20 +360,20 @@ export function TasksView() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-2xl font-semibold text-[#0a0a0a]">Tasks</h1>
+          <p className="text-sm text-[#737373] mt-1">
             {activeTasks} active &middot; {doneTasks} completed
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex bg-gray-100 rounded-lg p-1">
+          <div className="flex bg-[#f5f5f5] rounded-lg p-1">
             <button
               onClick={() => setView("hierarchy")}
               className={cn(
-                "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
+                "px-4 py-2 text-xs font-medium rounded-md transition-all duration-200 ease-in-out",
                 view === "hierarchy"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-white text-[#0a0a0a] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+                  : "text-[#737373] hover:text-[#404040]"
               )}
             >
               Hierarchy
@@ -381,10 +381,10 @@ export function TasksView() {
             <button
               onClick={() => setView("kanban")}
               className={cn(
-                "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
+                "px-4 py-2 text-xs font-medium rounded-md transition-all duration-200 ease-in-out",
                 view === "kanban"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-white text-[#0a0a0a] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+                  : "text-[#737373] hover:text-[#404040]"
               )}
             >
               Kanban
@@ -413,25 +413,25 @@ export function TasksView() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-center gap-4 flex-wrap">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a3a3a3]" />
           <Input
             placeholder="Search tasks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-white border-gray-200 text-gray-900 pl-9 h-9 text-sm w-56 shadow-sm focus:border-violet-300 focus:ring-violet-200"
+            className="pl-10 h-10 text-sm w-64"
           />
         </div>
         <Select
           value={statusFilter}
           onValueChange={(v) => v && setStatusFilter(v)}
         >
-          <SelectTrigger className="bg-white border-gray-200 text-gray-700 h-9 text-sm w-32 shadow-sm">
-            <Filter className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
+          <SelectTrigger className="bg-white border-[#e5e5e5] text-[#525252] h-10 text-sm w-32">
+            <Filter className="w-3.5 h-3.5 mr-2 text-[#a3a3a3]" />
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-white border-gray-200">
+          <SelectContent className="bg-white border-[#e5e5e5]">
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="all">All</SelectItem>
             <SelectItem value="todo">To Do</SelectItem>
@@ -444,10 +444,10 @@ export function TasksView() {
           value={groupBy}
           onValueChange={(v) => v && setGroupBy(v as "project" | "none")}
         >
-          <SelectTrigger className="bg-white border-gray-200 text-gray-700 h-9 text-sm w-40 shadow-sm">
+          <SelectTrigger className="bg-white border-[#e5e5e5] text-[#525252] h-10 text-sm w-40">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-white border-gray-200">
+          <SelectContent className="bg-white border-[#e5e5e5]">
             <SelectItem value="project">Group by Project</SelectItem>
             <SelectItem value="none">No Grouping</SelectItem>
           </SelectContent>
@@ -502,9 +502,9 @@ export function TasksView() {
             </div>
           )}
           {filteredTree.length === 0 && (
-            <div className="text-center py-16 text-gray-400">
-              <ListTodo className="w-10 h-10 mx-auto mb-3 opacity-40" />
-              <p className="text-sm">No tasks match your filters</p>
+            <div className="text-center py-16 text-[#a3a3a3]">
+              <ListTodo className="w-10 h-10 mx-auto mb-4 opacity-40" />
+              <p className="text-sm text-[#737373]">No tasks match your filters</p>
               <Button
                 variant="ghost"
                 size="sm"
@@ -535,22 +535,22 @@ export function TasksView() {
           }
         }}
       >
-        <DialogContent className="bg-white border-gray-200 shadow-xl sm:max-w-lg">
+        <DialogContent className="bg-white border-[#e5e5e5] shadow-[0_1px_3px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)] sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-gray-900 text-lg">
+            <DialogTitle className="text-[#0a0a0a] text-xl font-semibold">
               {newTask.parentTaskId ? "New Subtask" : "New Task"}
             </DialogTitle>
           </DialogHeader>
 
           {/* Voice / Text tabs */}
-          <div className="flex bg-gray-100 rounded-lg p-1 mb-4">
+          <div className="flex bg-[#f5f5f5] rounded-lg p-1 mb-4">
             <button
               onClick={() => setAddMode("voice")}
               className={cn(
-                "flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-md transition-all duration-200 ease-in-out",
                 addMode === "voice"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-white text-[#0a0a0a] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+                  : "text-[#737373] hover:text-[#404040]"
               )}
             >
               <Mic className="w-4 h-4" /> Voice
@@ -558,10 +558,10 @@ export function TasksView() {
             <button
               onClick={() => setAddMode("text")}
               className={cn(
-                "flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-md transition-all duration-200 ease-in-out",
                 addMode === "text"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-white text-[#0a0a0a] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+                  : "text-[#737373] hover:text-[#404040]"
               )}
             >
               <Keyboard className="w-4 h-4" /> Text
@@ -569,11 +569,11 @@ export function TasksView() {
           </div>
 
           {newTask.parentTaskId && (
-            <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-md px-3 py-2 border border-gray-200">
+            <div className="flex items-center gap-2 text-xs text-[#737373] bg-[#fafafa] rounded-lg px-4 py-3 border border-[#e5e5e5]">
               <PlusCircle className="w-3.5 h-3.5" />
               <span>
                 Subtask of:{" "}
-                <span className="text-gray-700 font-medium">
+                <span className="text-[#404040] font-medium">
                   {tasks?.find((t) => t.id === newTask.parentTaskId)
                     ?.fields.Name || "Unknown"}
                 </span>
@@ -582,7 +582,7 @@ export function TasksView() {
                 onClick={() =>
                   setNewTask({ ...newTask, parentTaskId: "" })
                 }
-                className="ml-auto text-gray-400 hover:text-gray-600"
+                className="ml-auto text-[#a3a3a3] hover:text-[#525252] transition-colors duration-200"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -600,7 +600,7 @@ export function TasksView() {
           {/* Parsed result or manual form */}
           <div className="space-y-3">
             {parsedTask && (
-              <div className="flex items-center gap-2 text-xs text-violet-600 bg-violet-50 rounded-md px-3 py-2 border border-violet-200">
+              <div className="flex items-center gap-2 text-xs text-violet-600 bg-[#f5f3ff] rounded-lg px-4 py-3 border border-violet-100">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>AI-parsed from your voice input — edit as needed</span>
               </div>
@@ -612,22 +612,21 @@ export function TasksView() {
               onChange={(e) =>
                 setNewTask({ ...newTask, name: e.target.value })
               }
-              className="bg-white border-gray-200 text-gray-900 shadow-sm"
               onKeyDown={(e) => e.key === "Enter" && handleCreate()}
               autoFocus={addMode === "text"}
             />
 
             {parsedTask?.subtasks?.length > 0 && (
-              <div className="bg-gray-50 rounded-md px-3 py-2 border border-gray-200">
-                <p className="text-xs font-medium text-gray-500 mb-1.5">
+              <div className="bg-[#fafafa] rounded-lg px-4 py-3 border border-[#e5e5e5]">
+                <p className="text-xs font-medium text-[#737373] mb-2">
                   Subtasks to create:
                 </p>
                 {parsedTask.subtasks.map((sub: string, i: number) => (
                   <div
                     key={i}
-                    className="flex items-center gap-2 text-sm text-gray-700 py-0.5"
+                    className="flex items-center gap-2 text-sm text-[#404040] py-1"
                   >
-                    <Square className="w-3.5 h-3.5 text-gray-400" />
+                    <Square className="w-3.5 h-3.5 text-[#a3a3a3]" />
                     {sub}
                   </div>
                 ))}
@@ -640,20 +639,20 @@ export function TasksView() {
               onChange={(e) =>
                 setNewTask({ ...newTask, description: e.target.value })
               }
-              className="bg-white border-gray-200 text-gray-900 shadow-sm"
+              className="bg-white border-[#e5e5e5] text-[#404040]"
               rows={2}
             />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <Select
                 value={newTask.priority}
                 onValueChange={(v) =>
                   v && setNewTask({ ...newTask, priority: v })
                 }
               >
-                <SelectTrigger className="bg-white border-gray-200 text-gray-700 shadow-sm">
+                <SelectTrigger className="bg-white border-[#e5e5e5] text-[#525252]">
                   <SelectValue placeholder="Priority" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-gray-200">
+                <SelectContent className="bg-white border-[#e5e5e5]">
                   <SelectItem value="low">Low</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
                   <SelectItem value="high">High</SelectItem>
@@ -666,7 +665,6 @@ export function TasksView() {
                 onChange={(e) =>
                   setNewTask({ ...newTask, project: e.target.value })
                 }
-                className="bg-white border-gray-200 text-gray-900 shadow-sm"
               />
             </div>
             <Input
@@ -675,12 +673,11 @@ export function TasksView() {
               onChange={(e) =>
                 setNewTask({ ...newTask, dueDate: e.target.value })
               }
-              className="bg-white border-gray-200 text-gray-900 shadow-sm"
             />
             <Button
               onClick={handleCreate}
               disabled={submitting || !newTask.name.trim()}
-              className="w-full bg-violet-600 hover:bg-violet-700 text-white shadow-sm"
+              className="w-full"
             >
               {submitting ? "Creating..." : "Create Task"}
             </Button>
@@ -715,7 +712,7 @@ export function TasksView() {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#0a0a0a] text-white text-sm font-medium px-6 py-3 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
           {toast}
         </div>
       )}
@@ -741,24 +738,24 @@ function VoiceRecorderUI({
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 py-4">
+    <div className="flex flex-col items-center gap-4 py-6">
       {/* Record button */}
       <button
         onClick={voice.isRecording ? voice.stopRecording : voice.startRecording}
         disabled={isParsing || voice.isTranscribing}
         className={cn(
-          "w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-lg",
+          "w-20 h-20 rounded-full flex items-center justify-center transition-all duration-200 ease-in-out shadow-[0_4px_12px_rgba(0,0,0,0.1)]",
           voice.isRecording
-            ? "bg-red-500 hover:bg-red-600 animate-pulse"
+            ? "bg-[#ef4444] hover:bg-red-600 animate-pulse"
             : isParsing || voice.isTranscribing
-              ? "bg-gray-200 cursor-not-allowed"
-              : "bg-red-500 hover:bg-red-600 hover:scale-105"
+              ? "bg-[#e5e5e5] cursor-not-allowed"
+              : "bg-[#ef4444] hover:bg-red-600"
         )}
       >
         {voice.isRecording ? (
           <MicOff className="w-8 h-8 text-white" />
         ) : isParsing || voice.isTranscribing ? (
-          <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+          <Loader2 className="w-8 h-8 text-[#a3a3a3] animate-spin" />
         ) : (
           <Mic className="w-8 h-8 text-white" />
         )}
@@ -768,19 +765,19 @@ function VoiceRecorderUI({
       <div className="text-center">
         {voice.isRecording ? (
           <>
-            <p className="text-sm font-medium text-red-600">Recording...</p>
-            <p className="text-xs text-gray-500 tabular-nums mt-0.5">
+            <p className="text-sm font-medium text-[#ef4444]">Recording...</p>
+            <p className="text-xs text-[#737373] tabular-nums mt-1">
               {formatTime(voice.duration)}
             </p>
           </>
         ) : voice.isTranscribing ? (
-          <p className="text-sm text-gray-500">Transcribing...</p>
+          <p className="text-sm text-[#737373]">Transcribing...</p>
         ) : isParsing ? (
-          <p className="text-sm text-violet-600 flex items-center gap-1.5">
+          <p className="text-sm text-violet-600 flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5" /> Parsing with AI...
           </p>
         ) : (
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-[#a3a3a3]">
             Tap to record your task
           </p>
         )}
@@ -788,11 +785,11 @@ function VoiceRecorderUI({
 
       {/* Transcript preview */}
       {voice.transcript && (
-        <div className="w-full bg-gray-50 rounded-lg border border-gray-200 p-3">
-          <p className="text-xs font-medium text-gray-500 mb-1">
+        <div className="w-full bg-[#fafafa] rounded-lg border border-[#e5e5e5] p-4">
+          <p className="text-xs font-medium text-[#737373] mb-1">
             Transcript:
           </p>
-          <p className="text-sm text-gray-700">{voice.transcript}</p>
+          <p className="text-sm text-[#404040]">{voice.transcript}</p>
         </div>
       )}
 
@@ -839,21 +836,21 @@ function ProjectGroup({
   const doneTasks = tasks.filter((t) => t.fields.Status === "done").length;
 
   return (
-    <div className="mb-5">
+    <div className="mb-6">
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center gap-2 px-2 py-2 w-full text-left group"
+        className="flex items-center gap-2 px-3 py-2.5 w-full text-left group transition-colors duration-200 ease-in-out rounded-lg hover:bg-[#fafafa]"
       >
         {collapsed ? (
-          <ChevronRight className="w-4 h-4 text-gray-400" />
+          <ChevronRight className="w-4 h-4 text-[#a3a3a3]" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-gray-400" />
+          <ChevronDown className="w-4 h-4 text-[#a3a3a3]" />
         )}
         <FolderOpen className="w-4 h-4 text-violet-500" />
-        <span className="text-sm font-semibold text-gray-800">
+        <span className="text-sm font-semibold text-[#404040]">
           {project || "Standalone Tasks"}
         </span>
-        <span className="text-xs text-gray-400 ml-1">
+        <span className="text-xs text-[#a3a3a3] ml-1">
           {doneTasks}/{tasks.length}
         </span>
       </button>
@@ -940,13 +937,13 @@ function TaskRow({
     <>
       <div
         className={cn(
-          "flex items-center gap-2 px-3 py-2.5 rounded-lg group transition-colors cursor-default",
+          "flex items-center gap-2 px-6 py-4 group transition-all duration-200 ease-in-out cursor-default min-h-[56px] border-b border-[#f5f5f5]",
           isSelected
-            ? "bg-violet-50 border border-violet-200"
-            : "hover:bg-gray-50 border border-transparent",
+            ? "bg-[#f5f3ff]"
+            : "hover:bg-[#fafafa]",
           isDone && "opacity-50"
         )}
-        style={{ paddingLeft: `${12 + indentPx}px` }}
+        style={{ paddingLeft: `${24 + indentPx}px` }}
         onClick={() => onSelect(node.id)}
         onContextMenu={(e) => {
           e.preventDefault();
@@ -961,7 +958,7 @@ function TaskRow({
                 e.stopPropagation();
                 onToggleExpand(node.id);
               }}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-[#a3a3a3] hover:text-[#525252] transition-colors duration-200"
             >
               {isExpanded ? (
                 <ChevronDown className="w-4 h-4" />
@@ -981,10 +978,10 @@ function TaskRow({
             onToggleComplete(node.id);
           }}
           className={cn(
-            "w-5 h-5 flex items-center justify-center shrink-0 rounded transition-colors",
+            "w-5 h-5 flex items-center justify-center shrink-0 rounded transition-colors duration-200",
             isDone
-              ? "text-emerald-500 hover:text-emerald-600"
-              : "text-gray-300 hover:text-gray-500"
+              ? "text-[#22c55e] hover:text-emerald-600"
+              : "text-[#d4d4d4] hover:text-[#737373]"
           )}
         >
           {isDone ? (
@@ -1008,7 +1005,7 @@ function TaskRow({
                 setEditing(false);
               }
             }}
-            className="flex-1 bg-transparent border-b-2 border-violet-500 text-sm text-gray-900 outline-none px-1 py-0"
+            className="flex-1 bg-transparent border-b-2 border-violet-500 text-base text-[#404040] outline-none px-1 py-0 font-medium"
           />
         ) : (
           <span
@@ -1017,8 +1014,8 @@ function TaskRow({
               setEditing(true);
             }}
             className={cn(
-              "flex-1 text-[15px] cursor-text select-none truncate",
-              isDone ? "line-through text-gray-400" : "text-gray-800"
+              "flex-1 text-base font-medium cursor-text select-none truncate",
+              isDone ? "line-through text-[#a3a3a3]" : "text-[#404040]"
             )}
           >
             {node.fields.Name}
@@ -1027,7 +1024,7 @@ function TaskRow({
 
         {/* Completion */}
         {completion !== null && !isDone && (
-          <span className="text-[10px] text-gray-400 tabular-nums shrink-0">
+          <span className="text-xs text-[#a3a3a3] tabular-nums shrink-0">
             {completion}%
           </span>
         )}
@@ -1047,14 +1044,14 @@ function TaskRow({
         )}
 
         {/* Hover actions */}
-        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0">
           {node.depth < 2 && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onAddSubtask(node.id);
               }}
-              className="p-1 text-gray-300 hover:text-violet-500 transition-colors"
+              className="p-1.5 text-[#d4d4d4] hover:text-violet-500 transition-colors duration-200 rounded-md hover:bg-[#f5f5f5] min-w-[44px] min-h-[44px] flex items-center justify-center"
               title="Add subtask"
             >
               <PlusCircle className="w-4 h-4" />
@@ -1065,7 +1062,7 @@ function TaskRow({
               e.stopPropagation();
               onDelete(node.id);
             }}
-            className="p-1 text-gray-300 hover:text-red-500 transition-colors"
+            className="p-1.5 text-[#d4d4d4] hover:text-[#ef4444] transition-colors duration-200 rounded-md hover:bg-[#f5f5f5] min-w-[44px] min-h-[44px] flex items-center justify-center"
             title="Delete"
           >
             <Trash2 className="w-4 h-4" />
@@ -1102,12 +1099,12 @@ function DueDateBadge({ dateStr }: { dateStr: string }) {
   return (
     <span
       className={cn(
-        "flex items-center gap-1 text-xs shrink-0 tabular-nums",
+        "flex items-center gap-1.5 text-xs shrink-0 tabular-nums",
         overdue
-          ? "text-red-500"
+          ? "text-[#ef4444]"
           : soon
-            ? "text-amber-500"
-            : "text-gray-400"
+            ? "text-[#f59e0b]"
+            : "text-[#a3a3a3]"
       )}
     >
       <Calendar className="w-3 h-3" />
@@ -1137,25 +1134,25 @@ function ContextMenu({
 }) {
   return (
     <div
-      className="fixed z-50 bg-white border border-gray-200 rounded-xl shadow-xl py-1.5 w-48 text-sm"
+      className="fixed z-50 bg-white rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] py-2 w-48 text-sm"
       style={{ left: x, top: y }}
       onClick={(e) => e.stopPropagation()}
     >
       <button
         onClick={onAddSubtask}
-        className="flex items-center gap-2 w-full px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors text-left"
+        className="flex items-center gap-2 w-full px-4 py-2.5 text-[#404040] hover:bg-[#fafafa] transition-colors duration-200 text-left"
       >
         <PlusCircle className="w-3.5 h-3.5" /> Add subtask
       </button>
-      <div className="border-t border-gray-100 my-1" />
-      <div className="px-3 py-1 text-[10px] text-gray-400 uppercase tracking-wider">
+      <div className="border-t border-[#f5f5f5] my-1" />
+      <div className="px-4 py-1.5 text-xs text-[#a3a3a3] font-medium">
         Priority
       </div>
       {["urgent", "high", "medium", "low"].map((p) => (
         <button
           key={p}
           onClick={() => onChangePriority(p)}
-          className="flex items-center gap-2 w-full px-3 py-1.5 text-gray-700 hover:bg-gray-50 transition-colors text-left"
+          className="flex items-center gap-2 w-full px-4 py-2 text-[#404040] hover:bg-[#fafafa] transition-colors duration-200 text-left"
         >
           <div
             className={cn("w-2 h-2 rounded-full", PRIORITY_DOT[p])}
@@ -1163,23 +1160,23 @@ function ContextMenu({
           <span className="capitalize">{p}</span>
         </button>
       ))}
-      <div className="border-t border-gray-100 my-1" />
-      <div className="px-3 py-1 text-[10px] text-gray-400 uppercase tracking-wider">
+      <div className="border-t border-[#f5f5f5] my-1" />
+      <div className="px-4 py-1.5 text-xs text-[#a3a3a3] font-medium">
         Status
       </div>
       {["todo", "in_progress", "done", "backlog"].map((s) => (
         <button
           key={s}
           onClick={() => onChangeStatus(s)}
-          className="flex items-center gap-2 w-full px-3 py-1.5 text-gray-700 hover:bg-gray-50 transition-colors text-left"
+          className="flex items-center gap-2 w-full px-4 py-2 text-[#404040] hover:bg-[#fafafa] transition-colors duration-200 text-left"
         >
           {STATUS_LABELS[s]}
         </button>
       ))}
-      <div className="border-t border-gray-100 my-1" />
+      <div className="border-t border-[#f5f5f5] my-1" />
       <button
         onClick={onDelete}
-        className="flex items-center gap-2 w-full px-3 py-2 text-red-500 hover:bg-red-50 transition-colors text-left"
+        className="flex items-center gap-2 w-full px-4 py-2.5 text-[#ef4444] hover:bg-red-50 transition-colors duration-200 text-left"
       >
         <Trash2 className="w-3.5 h-3.5" /> Delete
       </button>
@@ -1190,14 +1187,14 @@ function ContextMenu({
 // ============ KANBAN VIEW ============
 
 const KANBAN_COLUMNS = [
-  { id: "backlog" as const, label: "Backlog", color: "text-gray-400" },
-  { id: "todo" as const, label: "To Do", color: "text-blue-500" },
+  { id: "backlog" as const, label: "Backlog", color: "text-[#a3a3a3]" },
+  { id: "todo" as const, label: "To Do", color: "text-[#3b82f6]" },
   {
     id: "in_progress" as const,
     label: "In Progress",
-    color: "text-amber-500",
+    color: "text-[#f59e0b]",
   },
-  { id: "done" as const, label: "Done", color: "text-emerald-500" },
+  { id: "done" as const, label: "Done", color: "text-[#22c55e]" },
 ];
 
 function KanbanView({
@@ -1222,33 +1219,33 @@ function KanbanView({
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {KANBAN_COLUMNS.map((col) => (
-        <div key={col.id} className="space-y-2">
-          <div className="flex items-center gap-2 px-1 mb-3">
-            <span className={cn("text-sm font-medium", col.color)}>
+        <div key={col.id} className="space-y-3">
+          <div className="flex items-center gap-2 px-1 mb-4">
+            <span className={cn("text-sm font-semibold", col.color)}>
               {col.label}
             </span>
             <Badge
               variant="secondary"
-              className="bg-gray-100 text-gray-500 text-xs ml-auto"
+              className="ml-auto"
             >
               {tasksByStatus(col.id).length}
             </Badge>
           </div>
-          <div className="space-y-2 min-h-[200px]">
+          <div className="space-y-3 min-h-[200px]">
             {tasksByStatus(col.id).map((task) => {
               const currentIdx = advanceOrder.indexOf(task.fields.Status);
               return (
                 <div
                   key={task.id}
-                  className="p-3.5 rounded-xl bg-white border border-gray-200 group hover:border-gray-300 hover:shadow-sm transition-all"
+                  className="p-4 rounded-xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_4px_rgba(0,0,0,0.04)] group hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-all duration-200 ease-in-out"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-medium text-gray-800 leading-snug">
+                    <p className="text-sm font-medium text-[#404040] leading-snug">
                       {task.fields.Name}
                     </p>
-                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0">
                       {currentIdx < advanceOrder.length - 1 && (
                         <button
                           onClick={() =>
@@ -1257,7 +1254,7 @@ function KanbanView({
                               advanceOrder[currentIdx + 1]
                             )
                           }
-                          className="p-1 text-gray-300 hover:text-violet-500"
+                          className="p-1.5 text-[#d4d4d4] hover:text-violet-500 transition-colors duration-200"
                           title="Advance"
                         >
                           <ChevronRight className="w-3.5 h-3.5" />
@@ -1265,7 +1262,7 @@ function KanbanView({
                       )}
                       <button
                         onClick={() => onDelete(task.id)}
-                        className="p-1 text-gray-300 hover:text-red-500"
+                        className="p-1.5 text-[#d4d4d4] hover:text-[#ef4444] transition-colors duration-200"
                         title="Delete"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -1273,11 +1270,11 @@ function KanbanView({
                     </div>
                   </div>
                   {task.fields.Description && (
-                    <p className="text-xs text-gray-400 mt-1 line-clamp-2">
+                    <p className="text-xs text-[#a3a3a3] mt-1.5 line-clamp-2">
                       {task.fields.Description}
                     </p>
                   )}
-                  <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+                  <div className="flex items-center gap-2 mt-3 flex-wrap">
                     <Badge
                       variant="outline"
                       className={cn(
@@ -1290,7 +1287,7 @@ function KanbanView({
                     {task.fields.Project && (
                       <Badge
                         variant="outline"
-                        className="text-xs bg-violet-50 text-violet-600 border-violet-200"
+                        className="text-xs bg-[#f5f3ff] text-violet-600 border-violet-100"
                       >
                         {task.fields.Project}
                       </Badge>

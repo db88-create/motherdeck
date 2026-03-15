@@ -91,23 +91,23 @@ function BriefCard({ brief }: { brief: Brief }) {
     : "";
 
   return (
-    <Card className="bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all">
+    <Card className="hover:border-[#d4d4d4] transition-all">
       <CardHeader
         className="cursor-pointer pb-2"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-gray-400 mb-1">{formattedDate}</p>
-            <CardTitle className="text-base text-gray-900 leading-tight">
+            <p className="text-xs text-[#a3a3a3] mb-1">{formattedDate}</p>
+            <CardTitle className="text-base text-[#0a0a0a] leading-tight">
               {f.Title || "Untitled Brief"}
             </CardTitle>
           </div>
           <div className="flex-shrink-0 mt-1">
             {expanded ? (
-              <ChevronDown className="w-4 h-4 text-gray-400" />
+              <ChevronDown className="w-4 h-4 text-[#a3a3a3]" />
             ) : (
-              <ChevronRight className="w-4 h-4 text-gray-400" />
+              <ChevronRight className="w-4 h-4 text-[#a3a3a3]" />
             )}
           </div>
         </div>
@@ -117,7 +117,7 @@ function BriefCard({ brief }: { brief: Brief }) {
               <Badge
                 key={tag}
                 variant="outline"
-                className="text-[10px] border-gray-200 text-gray-500"
+                className="text-[10px] border-[#e5e5e5] text-[#737373]"
               >
                 {tag}
               </Badge>
@@ -136,7 +136,7 @@ function BriefCard({ brief }: { brief: Brief }) {
                   Executive Summary
                 </span>
               </div>
-              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+              <p className="text-sm text-[#404040] leading-relaxed whitespace-pre-line">
                 {f.Summary}
               </p>
             </div>
@@ -150,21 +150,21 @@ function BriefCard({ brief }: { brief: Brief }) {
                   Key Insights
                 </span>
               </div>
-              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+              <p className="text-sm text-[#404040] leading-relaxed whitespace-pre-line">
                 {f.KeyInsights}
               </p>
             </div>
           )}
 
           {f.BigIdea && (
-            <div className="bg-violet-50 border border-violet-200 rounded-lg p-3">
+            <div className="bg-[#f5f3ff] border border-violet-100 rounded-lg p-3">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-violet-500" />
                 <span className="text-xs font-medium text-violet-500 uppercase tracking-wider">
                   Big Idea
                 </span>
               </div>
-              <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-line">
+              <p className="text-sm text-[#404040] leading-relaxed whitespace-pre-line">
                 {f.BigIdea}
               </p>
             </div>
@@ -176,15 +176,15 @@ function BriefCard({ brief }: { brief: Brief }) {
                 <BookOpen className="w-4 h-4" />
                 Read Full Brief
               </DialogTrigger>
-              <DialogContent className="bg-white border-gray-200 shadow-xl max-w-2xl max-h-[85vh]">
+              <DialogContent className="bg-white border-[#e5e5e5] shadow-[0_1px_3px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)] max-w-2xl max-h-[85vh]">
                 <DialogHeader>
-                  <DialogTitle className="text-gray-900">
+                  <DialogTitle className="text-[#0a0a0a]">
                     {f.Title}
                   </DialogTitle>
-                  <p className="text-xs text-gray-400">{formattedDate}</p>
+                  <p className="text-xs text-[#a3a3a3]">{formattedDate}</p>
                 </DialogHeader>
                 <ScrollArea className="max-h-[65vh] pr-4">
-                  <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                  <div className="text-sm text-[#404040] leading-relaxed whitespace-pre-line">
                     {cleanBriefContent(f.FullContent)}
                   </div>
                 </ScrollArea>
@@ -203,7 +203,7 @@ export function BriefsView() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-pulse text-gray-400">Loading briefs...</div>
+        <div className="animate-pulse text-[#a3a3a3]">Loading briefs...</div>
       </div>
     );
   }
@@ -215,10 +215,10 @@ export function BriefsView() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Newspaper className="w-5 h-5 text-violet-500" />
-          <h2 className="text-lg font-semibold text-gray-900">Brief Archive</h2>
+          <h2 className="text-lg font-semibold text-[#0a0a0a]">Brief Archive</h2>
           <Badge
             variant="outline"
-            className="border-gray-200 text-gray-500 text-xs"
+            className="border-[#e5e5e5] text-[#737373] text-xs"
           >
             {briefsList.length}
           </Badge>
@@ -226,8 +226,8 @@ export function BriefsView() {
       </div>
 
       {briefsList.length === 0 ? (
-        <Card className="bg-white border-gray-200">
-          <CardContent className="flex flex-col items-center justify-center py-12 text-gray-400">
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12 text-[#a3a3a3]">
             <Newspaper className="w-8 h-8 mb-2 opacity-50" />
             <p className="text-sm">No briefs yet</p>
             <p className="text-xs mt-1">

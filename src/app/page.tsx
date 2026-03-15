@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <div className="flex h-dvh overflow-hidden bg-white">
       <Nav active={tab} onChange={setTab} />
-      <main className="flex-1 overflow-y-auto p-5 md:p-8 lg:p-10 pb-24 md:pb-8">
+      <main className="flex-1 overflow-y-auto px-6 py-8 md:px-8 md:py-8 lg:px-10 pb-24 md:pb-8 max-w-[1200px]">
         {tab === "command" && <CommandCenter />}
         {tab === "tasks" && <TasksView />}
         {tab === "usage" && <UsageView />}
