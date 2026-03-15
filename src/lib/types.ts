@@ -197,6 +197,22 @@ export interface Skill {
   fields: SkillFields;
 }
 
+// Brain Dump Notes
+export interface NoteFields {
+  Text: string;
+  Timestamp: string;
+  Suggestion?: "task" | "idea" | "keep";
+  SuggestionReason?: string;
+  SuggestionConfidence?: number;
+  Converted?: "task" | "idea";
+  ConvertedId?: string;
+}
+
+export interface NoteRecord {
+  id: string;
+  fields: NoteFields;
+}
+
 // ============ DASHBOARD AGGREGATES ============
 
 export interface CostSummary {

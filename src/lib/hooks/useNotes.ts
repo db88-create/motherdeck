@@ -15,84 +15,121 @@ export interface Note {
   convertedId?: string;
 }
 
-const STORAGE_KEY = "motherdeck-notes";
-
-function loadNotes(): Note[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const all: Note[] = JSON.parse(raw);
-    // Only show today's notes
-    const today = new Date().toISOString().split("T")[0];
-    return all.filter((n) => n.timestamp.startsWith(today));
-  } catch {
-    return [];
-  }
-}
-
-function saveNotes(notes: Note[]) {
-  if (typeof window === "undefined") return;
-  // Keep last 7 days of notes
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - 7);
-  const cutoffStr = cutoff.toISOString();
-
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const all: Note[] = raw ? JSON.parse(raw) : [];
-    // Remove today's notes from stored, replace with current
-    const today = new Date().toISOString().split("T")[0];
-    const other = all.filter(
-      (n) => !n.timestamp.startsWith(today) && n.timestamp > cutoffStr
-    );
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...other, ...notes]));
-  } catch {}
+// Map Airtable record to Note
+function recordToNote(record: any): Note {
+  const f = record.fields || record;
+  return {
+    id: record.id,
+    text: f.Text || "",
+    timestamp: f.Timestamp || new Date().toISOString(),
+    suggestion: f.Suggestion
+      ? {
+          action: f.Suggestion,
+          reason: f.SuggestionReason || "",
+          confidence: f.SuggestionConfidence || 0.5,
+        }
+      : null,
+    converted: f.Converted || null,
+    convertedId: f.ConvertedId || undefined,
+  };
 }
 
 export function useNotes() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    setNotes(loadNotes());
-    setLoading(false);
+  // Fetch from API
+  const fetchNotes = useCallback(async () => {
+    try {
+      const res = await fetch("/api/notes");
+      if (res.ok) {
+        const records = await res.json();
+        if (Array.isArray(records)) {
+          setNotes(records.map(recordToNote));
+        }
+      }
+    } catch {
+      // Silent fail — notes still work from local state
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    if (!loading) saveNotes(notes);
-  }, [notes, loading]);
+    fetchNotes();
+    // Poll every 30s to pick up suggestion updates from nook cron
+    const interval = setInterval(fetchNotes, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotes]);
 
-  const addNote = useCallback((text: string) => {
-    if (!text.trim()) return;
-    const note: Note = {
-      id: crypto.randomUUID(),
-      text: text.trim(),
-      timestamp: new Date().toISOString(),
-      suggestion: null,
-      converted: null,
-    };
-    setNotes((prev) => [...prev, note]);
-    return note;
-  }, []);
+  const addNote = useCallback(
+    async (text: string) => {
+      if (!text.trim()) return null;
 
-  const removeNote = useCallback((id: string) => {
+      // Optimistic: add locally immediately
+      const tempId = `temp-${Date.now()}`;
+      const timestamp = new Date().toISOString();
+      const tempNote: Note = {
+        id: tempId,
+        text: text.trim(),
+        timestamp,
+        suggestion: null,
+        converted: null,
+      };
+      setNotes((prev) => [...prev, tempNote]);
+
+      // Persist to Airtable
+      try {
+        const res = await fetch("/api/notes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: text.trim(), timestamp }),
+        });
+        if (res.ok) {
+          const record = await res.json();
+          const real = recordToNote(record);
+          // Replace temp with real record
+          setNotes((prev) =>
+            prev.map((n) => (n.id === tempId ? real : n))
+          );
+          return real;
+        }
+      } catch {}
+
+      return tempNote;
+    },
+    []
+  );
+
+  const removeNote = useCallback(async (id: string) => {
     setNotes((prev) => prev.filter((n) => n.id !== id));
-  }, []);
-
-  const updateNote = useCallback((id: string, updates: Partial<Note>) => {
-    setNotes((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, ...updates } : n))
-    );
+    try {
+      await fetch("/api/notes", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+    } catch {}
   }, []);
 
   const markConverted = useCallback(
-    (id: string, type: "task" | "idea", convertedId?: string) => {
+    async (id: string, type: "task" | "idea", convertedId?: string) => {
       setNotes((prev) =>
         prev.map((n) =>
           n.id === id ? { ...n, converted: type, convertedId } : n
         )
       );
+      try {
+        await fetch("/api/notes", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id,
+            converted: type,
+            convertedId: convertedId || "",
+          }),
+        });
+      } catch {}
     },
     []
   );
@@ -102,6 +139,7 @@ export function useNotes() {
       setNotes((prev) =>
         prev.map((n) => (n.id === id ? { ...n, suggestion } : n))
       );
+      // No API call here — suggestions come from the nook cron
     },
     []
   );
@@ -117,9 +155,9 @@ export function useNotes() {
     loading,
     addNote,
     removeNote,
-    updateNote,
     markConverted,
     setSuggestion,
+    fetchNotes,
     totalNotes,
     tasksCreated,
     ideasCreated,

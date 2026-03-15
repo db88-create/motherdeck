@@ -154,7 +154,6 @@ function BrainDumpCanvas() {
     addNote,
     removeNote,
     markConverted,
-    setSuggestion,
     totalNotes,
     tasksCreated,
     ideasCreated,
@@ -167,40 +166,16 @@ function BrainDumpCanvas() {
   const voice = useVoiceRecording({
     onTranscription: (text) => {
       if (text.trim()) {
-        const note = addNote(text.trim());
-        if (note) {
-          setTimeout(() => requestSuggestion(text.trim(), note.id), 2000);
-        }
+        addNote(text.trim());
       }
     },
   });
 
   const handleSubmit = () => {
     if (!inputText.trim()) return;
-    const note = addNote(inputText.trim());
-    if (note) {
-      setTimeout(() => requestSuggestion(inputText.trim(), note.id), 2000);
-    }
+    addNote(inputText.trim());
     setInputText("");
     textareaRef.current?.focus();
-  };
-
-  const requestSuggestion = async (text: string, noteId: string) => {
-    try {
-      const res = await fetch("/api/suggest-action", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setSuggestion(noteId, {
-          action: data.action,
-          reason: data.reason,
-          confidence: data.confidence,
-        });
-      }
-    } catch {}
   };
 
   const handleConvertToTask = async (note: Note) => {
