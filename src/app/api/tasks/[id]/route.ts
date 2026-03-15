@@ -24,6 +24,12 @@ export async function PATCH(
     if (body.dueDate !== undefined) fields.DueDate = body.dueDate;
     if (body.assignee !== undefined) fields.Assignee = body.assignee;
     if (body.tags !== undefined) fields.Tags = body.tags;
+    if (body.parentTaskId !== undefined) fields.ParentTaskId = body.parentTaskId;
+    if (body.estimatedHours !== undefined) fields.EstimatedHours = body.estimatedHours;
+    if (body.actualHours !== undefined) fields.ActualHours = body.actualHours;
+    if (body.notes !== undefined) fields.Notes = body.notes;
+    if (body.checklist !== undefined) fields.Checklist = body.checklist;
+    if (body.sortOrder !== undefined) fields.SortOrder = body.sortOrder;
 
     const record = await updateRecord<TaskFields>("Tasks", id, fields);
     return NextResponse.json(record);

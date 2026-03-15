@@ -1,6 +1,6 @@
 // ============ AIRTABLE TABLE TYPES ============
 
-// Tasks (To-Do / Kanban)
+// Tasks (To-Do / Kanban + Hierarchical)
 export interface TaskFields {
   Name: string;
   Status: "backlog" | "todo" | "in_progress" | "done" | "archived";
@@ -12,11 +12,22 @@ export interface TaskFields {
   CreatedAt: string;
   CompletedAt?: string;
   Tags?: string; // comma-separated
+  ParentTaskId?: string;
+  EstimatedHours?: number;
+  ActualHours?: number;
+  Notes?: string;
+  Checklist?: string; // JSON stringified array
+  SortOrder?: number;
 }
 
 export interface Task {
   id: string;
   fields: TaskFields;
+}
+
+export interface TaskNode extends Task {
+  subtasks: TaskNode[];
+  depth: number;
 }
 
 // Projects

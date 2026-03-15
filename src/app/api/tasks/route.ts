@@ -51,6 +51,9 @@ export async function POST(req: NextRequest) {
       Assignee: body.assignee || "",
       CreatedAt: new Date().toISOString(),
       Tags: body.tags || "",
+      ...(body.parentTaskId && { ParentTaskId: body.parentTaskId }),
+      ...(body.estimatedHours && { EstimatedHours: body.estimatedHours }),
+      ...(body.sortOrder !== undefined && { SortOrder: body.sortOrder }),
     };
 
     const record = await createRecord<TaskFields>("Tasks", fields);
