@@ -307,35 +307,37 @@ export async function createExpense(data: {
   }
 }
 
-
 // ============ BRIEFS ============
 
 export async function createBrief(data: {
   date: string;
   title: string;
-  summary: string;
-  keyInsights?: string;
-  bigIdea?: string;
-  fullContent: string;
-  highlights?: string[];
+  executiveSummary: string;
+  keyInsights: string;
+  bigIdea: string;
+  fullBrief: string;
+  highlights?: string | string[];
 }): Promise<WriteResult> {
   try {
+    if (!data.date || !isValidDate(data.date)) {
+      return { success: false, error: `Invalid date: ${data.date}` };
+    }
     if (!data.title?.trim()) {
       return { success: false, error: "Brief title is required" };
     }
-    if (data.date && !isValidDate(data.date)) {
-      return { success: false, error: "Invalid date format. Use YYYY-MM-DD" };
-    }
+
+    const highlights = Array.isArray(data.highlights)
+      ? data.highlights.join(", ")
+      : data.highlights || "";
 
     const fields: Record<string, any> = {
-      Date: data.date || new Date().toISOString().split("T")[0],
+      Date: data.date,
       Title: data.title.trim(),
-      Summary: data.summary || "",
+      Summary: data.executiveSummary || "",
       KeyInsights: data.keyInsights || "",
       BigIdea: data.bigIdea || "",
-      FullContent: data.fullContent || "",
-      Highlights: data.highlights?.join(", ") || "",
-      TopicsCount: (data.highlights || []).length,
+      FullContent: data.fullBrief || "",
+      Highlights: highlights,
       CreatedAt: new Date().toISOString(),
     };
 

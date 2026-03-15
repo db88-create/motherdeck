@@ -1,5 +1,63 @@
 "use client";
 
+function cleanBriefContent(raw: string): string {
+  if (!raw) return "";
+  // Strip CSS block (everything from first { to the closing of @media or last })
+  // Find where actual content starts (after CSS rules end)
+  const lines = raw.split("
+");
+  let contentStart = 0;
+  let braceDepth = 0;
+  let inCss = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (i < 5 && (line.startsWith("* {") || line.startsWith("body {") || line === "* {")) {
+      inCss = true;
+    }
+    if (inCss) {
+      braceDepth += (line.match(/{/g) || []).length;
+      braceDepth -= (line.match(/}/g) || []).length;
+      if (braceDepth <= 0 && i > 2) {
+        // Check if next non-empty line is still CSS
+        const nextLine = lines.slice(i + 1).find((l) => l.trim());
+        if (
+          nextLine &&
+          (nextLine.trim().match(/^[.#@a-z]/i) &&
+            nextLine.includes("{"))
+        ) {
+          continue; // Still CSS
+        }
+        contentStart = i + 1;
+        inCss = false;
+      }
+      continue;
+    }
+  }
+
+  // Get content after CSS
+  let cleaned = lines.slice(contentStart).join("
+");
+
+  // Remove empty lines at start
+  cleaned = cleaned.replace(/^\s*
++/, "");
+
+  // Clean up excessive whitespace but preserve structure
+  cleaned = cleaned
+    .split("
+")
+    .map((l) => l.replace(/^\s{4,}/, "  ")) // reduce deep indentation
+    .join("
+")
+    .replace(/
+{3,}/g, "
+
+"); // max 2 newlines
+
+  return cleaned.trim();
+}
+
 import { useFetch } from "@/lib/hooks";
 import { Brief } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
