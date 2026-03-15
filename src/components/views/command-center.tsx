@@ -28,7 +28,7 @@ interface CommandData {
 export function CommandCenter() {
   const { data, loading } = useFetch<CommandData>(
     "/api/command-center",
-    60000 // refresh every minute
+    60000
   );
 
   if (loading) return <LoadingSkeleton />;
@@ -38,24 +38,23 @@ export function CommandCenter() {
   const gw = data.gateway?.fields;
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-white">Command Center</h1>
+    <div className="space-y-6 max-w-5xl">
+      <h1 className="text-2xl font-bold text-gray-900">Command Center</h1>
 
-      {/* Top cards row */}
+      {/* Top cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Gateway Status */}
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-white border-gray-200 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Server className="w-4 h-4 text-zinc-400" />
-                <span className="text-sm text-zinc-400">Gateway</span>
+                <Server className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-500">Gateway</span>
               </div>
               <Badge
                 variant={gw?.Status === "online" ? "default" : "destructive"}
                 className={
                   gw?.Status === "online"
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                    ? "bg-emerald-50 text-emerald-600 border-emerald-200"
                     : ""
                 }
               >
@@ -64,10 +63,10 @@ export function CommandCenter() {
             </div>
             {gw && (
               <div className="mt-3 space-y-1">
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-gray-400">
                   Uptime: {gw.Uptime}
                 </p>
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-gray-400">
                   Memory: {gw.MemoryMB} MB
                 </p>
               </div>
@@ -75,47 +74,41 @@ export function CommandCenter() {
           </CardContent>
         </Card>
 
-        {/* Today's Spend */}
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-white border-gray-200 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="w-4 h-4 text-zinc-400" />
-              <span className="text-sm text-zinc-400">Today&apos;s Spend</span>
+              <DollarSign className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-500">Today&apos;s Spend</span>
             </div>
-            <p className="text-2xl font-bold text-white">
+            <p className="text-2xl font-bold text-gray-900">
               ${data.todaySpend.toFixed(2)}
             </p>
-            <Progress
-              value={spendPct}
-              className="mt-2 h-2"
-            />
-            <p className="text-xs text-zinc-500 mt-1">
+            <Progress value={spendPct} className="mt-2 h-2" />
+            <p className="text-xs text-gray-400 mt-1">
               ${data.dailyBudget.toFixed(2)} daily budget
             </p>
           </CardContent>
         </Card>
 
-        {/* Active Sessions */}
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-white border-gray-200 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 mb-2">
-              <Cpu className="w-4 h-4 text-zinc-400" />
-              <span className="text-sm text-zinc-400">Active Sessions</span>
+              <Cpu className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-500">Active Sessions</span>
             </div>
-            <p className="text-2xl font-bold text-white">
+            <p className="text-2xl font-bold text-gray-900">
               {data.sessions.length}
             </p>
           </CardContent>
         </Card>
 
-        {/* Alerts */}
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-white border-gray-200 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="w-4 h-4 text-zinc-400" />
-              <span className="text-sm text-zinc-400">Active Alerts</span>
+              <AlertTriangle className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-500">Active Alerts</span>
             </div>
-            <p className="text-2xl font-bold text-white">
+            <p className="text-2xl font-bold text-gray-900">
               {data.alerts.length}
             </p>
           </CardContent>
@@ -124,9 +117,9 @@ export function CommandCenter() {
 
       {/* Sessions */}
       {data.sessions.length > 0 && (
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-white border-gray-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-white text-lg flex items-center gap-2">
+            <CardTitle className="text-gray-900 text-lg flex items-center gap-2">
               <Activity className="w-5 h-5" /> Active Sessions
             </CardTitle>
           </CardHeader>
@@ -134,24 +127,24 @@ export function CommandCenter() {
             {data.sessions.map((s) => (
               <div
                 key={s.id}
-                className="flex items-center justify-between p-3 rounded-lg bg-zinc-950 border border-zinc-800"
+                className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200"
               >
                 <div>
-                  <p className="text-sm font-medium text-white">
+                  <p className="text-sm font-medium text-gray-800">
                     {s.fields.Name}
                   </p>
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-gray-400">
                     {s.fields.Type} &middot; {s.fields.Model}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="w-24">
                     <Progress value={s.fields.ContextPct} className="h-2" />
-                    <p className="text-xs text-zinc-500 mt-0.5 text-right">
+                    <p className="text-xs text-gray-400 mt-0.5 text-right">
                       {s.fields.ContextPct}% ctx
                     </p>
                   </div>
-                  <p className="text-xs text-zinc-400 tabular-nums">
+                  <p className="text-xs text-gray-500 tabular-nums">
                     ${s.fields.Cost?.toFixed(4)}
                   </p>
                 </div>
@@ -162,9 +155,9 @@ export function CommandCenter() {
       )}
 
       {/* Cron Jobs */}
-      <Card className="bg-zinc-900 border-zinc-800">
+      <Card className="bg-white border-gray-200 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-white text-lg flex items-center gap-2">
+          <CardTitle className="text-gray-900 text-lg flex items-center gap-2">
             <Clock className="w-5 h-5" /> Cron Jobs
           </CardTitle>
         </CardHeader>
@@ -173,23 +166,23 @@ export function CommandCenter() {
             {data.cronJobs.map((job) => (
               <div
                 key={job.id}
-                className="p-3 rounded-lg bg-zinc-950 border border-zinc-800"
+                className="p-3 rounded-lg bg-gray-50 border border-gray-200"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-white truncate">
+                  <p className="text-sm font-medium text-gray-800 truncate">
                     {job.fields.Name}
                   </p>
                   {job.fields.LastResult === "success" ? (
-                    <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
                   ) : job.fields.LastResult === "error" ? (
-                    <XCircle className="w-4 h-4 text-red-400 shrink-0" />
+                    <XCircle className="w-4 h-4 text-red-500 shrink-0" />
                   ) : null}
                 </div>
-                <p className="text-xs text-zinc-500 font-mono">
+                <p className="text-xs text-gray-400 font-mono">
                   {job.fields.Schedule}
                 </p>
                 {job.fields.LastRun && (
-                  <p className="text-xs text-zinc-600 mt-1">
+                  <p className="text-xs text-gray-400 mt-1">
                     Last: {new Date(job.fields.LastRun).toLocaleString()}
                   </p>
                 )}
@@ -206,9 +199,9 @@ export function CommandCenter() {
 
       {/* Alerts */}
       {data.alerts.length > 0 && (
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-white border-gray-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-white text-lg flex items-center gap-2">
+            <CardTitle className="text-gray-900 text-lg flex items-center gap-2">
               <AlertTriangle className="w-5 h-5" /> Alerts
             </CardTitle>
           </CardHeader>
@@ -218,16 +211,16 @@ export function CommandCenter() {
                 key={alert.id}
                 className={`p-3 rounded-lg border ${
                   alert.fields.Severity === "critical"
-                    ? "bg-red-500/5 border-red-500/20"
+                    ? "bg-red-50 border-red-200"
                     : alert.fields.Severity === "warning"
-                    ? "bg-yellow-500/5 border-yellow-500/20"
-                    : "bg-blue-500/5 border-blue-500/20"
+                    ? "bg-amber-50 border-amber-200"
+                    : "bg-blue-50 border-blue-200"
                 }`}
               >
-                <p className="text-sm font-medium text-white">
+                <p className="text-sm font-medium text-gray-800">
                   {alert.fields.Title}
                 </p>
-                <p className="text-xs text-zinc-400 mt-1">
+                <p className="text-xs text-gray-500 mt-1">
                   {alert.fields.Message}
                 </p>
               </div>
@@ -241,17 +234,17 @@ export function CommandCenter() {
 
 function LoadingSkeleton() {
   return (
-    <div className="space-y-6">
-      <div className="h-8 w-48 bg-zinc-800 rounded animate-pulse" />
+    <div className="space-y-6 max-w-5xl">
+      <div className="h-8 w-48 bg-gray-100 rounded animate-pulse" />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
           <div
             key={i}
-            className="h-28 bg-zinc-900 border border-zinc-800 rounded-xl animate-pulse"
+            className="h-28 bg-gray-50 border border-gray-200 rounded-xl animate-pulse"
           />
         ))}
       </div>
-      <div className="h-48 bg-zinc-900 border border-zinc-800 rounded-xl animate-pulse" />
+      <div className="h-48 bg-gray-50 border border-gray-200 rounded-xl animate-pulse" />
     </div>
   );
 }
@@ -260,11 +253,11 @@ function EmptyState() {
   return (
     <div className="flex items-center justify-center h-64">
       <div className="text-center">
-        <Server className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
-        <p className="text-zinc-400">
+        <Server className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+        <p className="text-gray-500">
           Connect Airtable to see your command center
         </p>
-        <p className="text-xs text-zinc-600 mt-1">
+        <p className="text-xs text-gray-400 mt-1">
           Add AIRTABLE_PAT and AIRTABLE_BASE_ID to .env.local
         </p>
       </div>

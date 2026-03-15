@@ -12,7 +12,7 @@ import {
   getCompletionPct,
   collectChildIds,
 } from "@/lib/utils/taskHelpers";
-import { Card, CardContent } from "@/components/ui/card";
+import { useVoiceRecording } from "@/lib/hooks/useVoiceRecording";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +22,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -35,7 +34,6 @@ import {
   Plus,
   ChevronRight,
   ChevronDown,
-  Check,
   Square,
   CheckSquare,
   Calendar,
@@ -43,28 +41,30 @@ import {
   ListTodo,
   Search,
   Filter,
-  MoreHorizontal,
   Trash2,
   PlusCircle,
-  Flag,
-  Clock,
   X,
+  Mic,
+  MicOff,
+  Loader2,
+  Sparkles,
+  Keyboard,
 } from "lucide-react";
 
 // ============ CONSTANTS ============
 
 const PRIORITY_COLORS: Record<string, string> = {
-  urgent: "bg-red-500/10 text-red-400 border-red-500/20",
-  high: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-  medium: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  low: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+  urgent: "bg-red-50 text-red-600 border-red-200",
+  high: "bg-orange-50 text-orange-600 border-orange-200",
+  medium: "bg-blue-50 text-blue-600 border-blue-200",
+  low: "bg-gray-50 text-gray-500 border-gray-200",
 };
 
 const PRIORITY_DOT: Record<string, string> = {
-  urgent: "bg-red-400",
-  high: "bg-orange-400",
-  medium: "bg-blue-400",
-  low: "bg-zinc-500",
+  urgent: "bg-red-500",
+  high: "bg-orange-500",
+  medium: "bg-blue-500",
+  low: "bg-gray-400",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -108,13 +108,17 @@ export function TasksView() {
     parentTaskId: "",
   });
 
-  // Toast helper
+  // Voice tab state
+  const [addMode, setAddMode] = useState<"voice" | "text">("voice");
+  const [parsedTask, setParsedTask] = useState<any>(null);
+  const [isParsing, setIsParsing] = useState(false);
+
   const showToast = useCallback((msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
   }, []);
 
-  // Build tree from flat tasks
+  // Build tree
   const taskTree = tasks ? buildTaskTree(tasks) : [];
   const filteredTree = filterTasks(taskTree, {
     status: statusFilter,
@@ -124,7 +128,7 @@ export function TasksView() {
   const grouped =
     groupBy === "project" ? groupByProject(filteredTree) : null;
 
-  // Auto-expand all tasks with subtasks on first load
+  // Auto-expand
   useEffect(() => {
     if (tasks && expandedTasks.has("__all__")) {
       const expanded = new Set<string>();
@@ -141,10 +145,8 @@ export function TasksView() {
   // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // Don't capture when typing in inputs
       const tag = (e.target as HTMLElement).tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-
       if (e.key === "n" && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         setDialogOpen(true);
@@ -153,7 +155,11 @@ export function TasksView() {
         e.preventDefault();
         handleToggleComplete(selectedTaskId);
       }
-      if ((e.key === "Delete" || e.key === "Backspace") && selectedTaskId && (e.metaKey || e.ctrlKey)) {
+      if (
+        (e.key === "Delete" || e.key === "Backspace") &&
+        selectedTaskId &&
+        (e.metaKey || e.ctrlKey)
+      ) {
         e.preventDefault();
         handleDelete(selectedTaskId);
       }
@@ -162,13 +168,42 @@ export function TasksView() {
     return () => window.removeEventListener("keydown", handler);
   }, [selectedTaskId]);
 
-  // Close context menu on click outside
+  // Close context menu on click
   useEffect(() => {
     if (!contextMenu) return;
     const handler = () => setContextMenu(null);
     window.addEventListener("click", handler);
     return () => window.removeEventListener("click", handler);
   }, [contextMenu]);
+
+  // ---- Voice parse handler ----
+  const handleVoiceParse = async (text: string) => {
+    if (!text.trim()) return;
+    setIsParsing(true);
+    try {
+      const res = await fetch("/api/parse-task", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setParsedTask(data);
+        setNewTask({
+          name: data.title || "",
+          description: data.description || "",
+          priority: data.priority || "medium",
+          project: data.project || "",
+          dueDate: data.dueDate || "",
+          parentTaskId: newTask.parentTaskId,
+        });
+      }
+    } catch (err) {
+      console.error("Parse failed:", err);
+    } finally {
+      setIsParsing(false);
+    }
+  };
 
   // ---- Actions ----
 
@@ -182,6 +217,26 @@ export function TasksView() {
       dueDate: newTask.dueDate,
       parentTaskId: newTask.parentTaskId || undefined,
     });
+
+    // Create subtasks from parsed voice input
+    if (parsedTask?.subtasks?.length > 0) {
+      // Get the parent task we just created (latest)
+      const updated = await fetch("/api/tasks").then((r) => r.json());
+      const parent = updated?.find(
+        (t: Task) => t.fields.Name === newTask.name
+      );
+      if (parent) {
+        for (const sub of parsedTask.subtasks) {
+          await post("/api/tasks", {
+            name: sub,
+            priority: newTask.priority,
+            project: newTask.project,
+            parentTaskId: parent.id,
+          });
+        }
+      }
+    }
+
     setNewTask({
       name: "",
       description: "",
@@ -190,6 +245,7 @@ export function TasksView() {
       dueDate: "",
       parentTaskId: "",
     });
+    setParsedTask(null);
     setDialogOpen(false);
     showToast("Task created");
     refetch();
@@ -201,7 +257,6 @@ export function TasksView() {
     const newStatus = task.fields.Status === "done" ? "todo" : "done";
     await patch(`/api/tasks/${taskId}`, { status: newStatus });
 
-    // Auto-complete children if completing parent
     if (newStatus === "done") {
       const node = findNode(taskTree, taskId);
       if (node && node.subtasks.length > 0) {
@@ -244,13 +299,11 @@ export function TasksView() {
       dueDate: "",
       parentTaskId: parentId,
     });
+    setParsedTask(null);
     setDialogOpen(true);
   };
 
-  const handleChangePriority = async (
-    taskId: string,
-    priority: string
-  ) => {
+  const handleChangePriority = async (taskId: string, priority: string) => {
     await patch(`/api/tasks/${taskId}`, { priority });
     showToast(`Priority → ${priority}`);
     refetch();
@@ -271,11 +324,7 @@ export function TasksView() {
     });
   };
 
-  // Find a node in the tree by ID
-  const findNode = (
-    nodes: TaskNode[],
-    id: string
-  ): TaskNode | null => {
+  const findNode = (nodes: TaskNode[], id: string): TaskNode | null => {
     for (const n of nodes) {
       if (n.id === id) return n;
       const found = findNode(n.subtasks, id);
@@ -290,16 +339,15 @@ export function TasksView() {
     tasks?.filter((t) => t.fields.Status === "done").length || 0;
   const activeTasks = totalTasks - doneTasks;
 
-  // ---- Loading state ----
   if (loading) {
     return (
-      <div className="space-y-4">
-        <div className="h-8 w-48 bg-zinc-800 rounded animate-pulse" />
+      <div className="space-y-5 max-w-4xl">
+        <div className="h-8 w-48 bg-gray-100 rounded animate-pulse" />
         <div className="space-y-2">
           {[...Array(8)].map((_, i) => (
             <div
               key={i}
-              className="h-10 bg-zinc-900 rounded-lg animate-pulse"
+              className="h-12 bg-gray-50 rounded-lg animate-pulse"
             />
           ))}
         </div>
@@ -308,25 +356,24 @@ export function TasksView() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 max-w-4xl">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Tasks</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
+          <p className="text-sm text-gray-500 mt-1">
             {activeTasks} active &middot; {doneTasks} completed
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {/* View toggle */}
-          <div className="flex bg-zinc-900 rounded-lg p-1 border border-zinc-800">
+          <div className="flex bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => setView("hierarchy")}
               className={cn(
                 "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
                 view === "hierarchy"
-                  ? "bg-zinc-700 text-white"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
               )}
             >
               Hierarchy
@@ -336,128 +383,55 @@ export function TasksView() {
               className={cn(
                 "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
                 view === "kanban"
-                  ? "bg-zinc-700 text-white"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
               )}
             >
               Kanban
             </button>
           </div>
 
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger className="inline-flex items-center justify-center gap-1 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 transition-colors">
-              <Plus className="w-4 h-4" /> New Task
-            </DialogTrigger>
-            <DialogContent className="bg-zinc-900 border-zinc-800">
-              <DialogHeader>
-                <DialogTitle className="text-white">
-                  {newTask.parentTaskId ? "New Subtask" : "New Task"}
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                {newTask.parentTaskId && (
-                  <div className="flex items-center gap-2 text-xs text-zinc-400 bg-zinc-800/50 rounded-md px-3 py-2">
-                    <PlusCircle className="w-3.5 h-3.5" />
-                    <span>
-                      Subtask of:{" "}
-                      <span className="text-zinc-300">
-                        {tasks?.find((t) => t.id === newTask.parentTaskId)
-                          ?.fields.Name || "Unknown"}
-                      </span>
-                    </span>
-                    <button
-                      onClick={() =>
-                        setNewTask({ ...newTask, parentTaskId: "" })
-                      }
-                      className="ml-auto text-zinc-500 hover:text-zinc-300"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                )}
-                <Input
-                  placeholder="Task name"
-                  value={newTask.name}
-                  onChange={(e) =>
-                    setNewTask({ ...newTask, name: e.target.value })
-                  }
-                  className="bg-zinc-950 border-zinc-800 text-white"
-                  onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                  autoFocus
-                />
-                <Textarea
-                  placeholder="Description (optional)"
-                  value={newTask.description}
-                  onChange={(e) =>
-                    setNewTask({ ...newTask, description: e.target.value })
-                  }
-                  className="bg-zinc-950 border-zinc-800 text-white"
-                  rows={2}
-                />
-                <div className="grid grid-cols-2 gap-3">
-                  <Select
-                    value={newTask.priority}
-                    onValueChange={(v) =>
-                      v && setNewTask({ ...newTask, priority: v })
-                    }
-                  >
-                    <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white">
-                      <SelectValue placeholder="Priority" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-zinc-900 border-zinc-800">
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="urgent">Urgent</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    placeholder="Project"
-                    value={newTask.project}
-                    onChange={(e) =>
-                      setNewTask({ ...newTask, project: e.target.value })
-                    }
-                    className="bg-zinc-950 border-zinc-800 text-white"
-                  />
-                </div>
-                <Input
-                  type="date"
-                  value={newTask.dueDate}
-                  onChange={(e) =>
-                    setNewTask({ ...newTask, dueDate: e.target.value })
-                  }
-                  className="bg-zinc-950 border-zinc-800 text-white"
-                />
-                <Button
-                  onClick={handleCreate}
-                  disabled={submitting || !newTask.name.trim()}
-                  className="w-full bg-violet-600 hover:bg-violet-700"
-                >
-                  {submitting ? "Creating..." : "Create Task"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button
+            onClick={() => {
+              setNewTask({
+                name: "",
+                description: "",
+                priority: "medium",
+                project: "",
+                dueDate: "",
+                parentTaskId: "",
+              });
+              setParsedTask(null);
+              setDialogOpen(true);
+            }}
+            size="sm"
+            className="bg-violet-600 hover:bg-violet-700 text-white shadow-sm"
+          >
+            <Plus className="w-4 h-4 mr-1" /> Add Task
+          </Button>
         </div>
       </div>
 
-      {/* Filters bar */}
-      <div className="flex items-center gap-2 flex-wrap">
+      {/* Filters */}
+      <div className="flex items-center gap-3 flex-wrap">
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             placeholder="Search tasks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-zinc-900 border-zinc-800 text-white pl-8 h-8 text-sm w-52"
+            className="bg-white border-gray-200 text-gray-900 pl-9 h-9 text-sm w-56 shadow-sm focus:border-violet-300 focus:ring-violet-200"
           />
         </div>
-        <Select value={statusFilter} onValueChange={(v) => v && setStatusFilter(v)}>
-          <SelectTrigger className="bg-zinc-900 border-zinc-800 text-zinc-300 h-8 text-sm w-32">
-            <Filter className="w-3.5 h-3.5 mr-1.5" />
+        <Select
+          value={statusFilter}
+          onValueChange={(v) => v && setStatusFilter(v)}
+        >
+          <SelectTrigger className="bg-white border-gray-200 text-gray-700 h-9 text-sm w-32 shadow-sm">
+            <Filter className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-zinc-900 border-zinc-800">
+          <SelectContent className="bg-white border-gray-200">
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="all">All</SelectItem>
             <SelectItem value="todo">To Do</SelectItem>
@@ -470,17 +444,17 @@ export function TasksView() {
           value={groupBy}
           onValueChange={(v) => v && setGroupBy(v as "project" | "none")}
         >
-          <SelectTrigger className="bg-zinc-900 border-zinc-800 text-zinc-300 h-8 text-sm w-36">
+          <SelectTrigger className="bg-white border-gray-200 text-gray-700 h-9 text-sm w-40 shadow-sm">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-zinc-900 border-zinc-800">
+          <SelectContent className="bg-white border-gray-200">
             <SelectItem value="project">Group by Project</SelectItem>
             <SelectItem value="none">No Grouping</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* Hierarchical task list */}
+      {/* Task list */}
       {view === "hierarchy" ? (
         <div className="space-y-1">
           {grouped ? (
@@ -527,15 +501,14 @@ export function TasksView() {
               ))}
             </div>
           )}
-
           {filteredTree.length === 0 && (
-            <div className="text-center py-16 text-zinc-500">
+            <div className="text-center py-16 text-gray-400">
               <ListTodo className="w-10 h-10 mx-auto mb-3 opacity-40" />
               <p className="text-sm">No tasks match your filters</p>
               <Button
                 variant="ghost"
                 size="sm"
-                className="mt-2 text-violet-400"
+                className="mt-2 text-violet-600"
                 onClick={() => setDialogOpen(true)}
               >
                 <Plus className="w-4 h-4 mr-1" /> Create one
@@ -551,6 +524,169 @@ export function TasksView() {
           onToggleComplete={handleToggleComplete}
         />
       )}
+
+      {/* Add Task Dialog with Voice */}
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setParsedTask(null);
+          }
+        }}
+      >
+        <DialogContent className="bg-white border-gray-200 shadow-xl sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 text-lg">
+              {newTask.parentTaskId ? "New Subtask" : "New Task"}
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Voice / Text tabs */}
+          <div className="flex bg-gray-100 rounded-lg p-1 mb-4">
+            <button
+              onClick={() => setAddMode("voice")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                addMode === "voice"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              )}
+            >
+              <Mic className="w-4 h-4" /> Voice
+            </button>
+            <button
+              onClick={() => setAddMode("text")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                addMode === "text"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              )}
+            >
+              <Keyboard className="w-4 h-4" /> Text
+            </button>
+          </div>
+
+          {newTask.parentTaskId && (
+            <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-md px-3 py-2 border border-gray-200">
+              <PlusCircle className="w-3.5 h-3.5" />
+              <span>
+                Subtask of:{" "}
+                <span className="text-gray-700 font-medium">
+                  {tasks?.find((t) => t.id === newTask.parentTaskId)
+                    ?.fields.Name || "Unknown"}
+                </span>
+              </span>
+              <button
+                onClick={() =>
+                  setNewTask({ ...newTask, parentTaskId: "" })
+                }
+                className="ml-auto text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* Voice recording area */}
+          {addMode === "voice" && (
+            <VoiceRecorderUI
+              onTranscription={handleVoiceParse}
+              isParsing={isParsing}
+            />
+          )}
+
+          {/* Parsed result or manual form */}
+          <div className="space-y-3">
+            {parsedTask && (
+              <div className="flex items-center gap-2 text-xs text-violet-600 bg-violet-50 rounded-md px-3 py-2 border border-violet-200">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>AI-parsed from your voice input — edit as needed</span>
+              </div>
+            )}
+
+            <Input
+              placeholder="Task name"
+              value={newTask.name}
+              onChange={(e) =>
+                setNewTask({ ...newTask, name: e.target.value })
+              }
+              className="bg-white border-gray-200 text-gray-900 shadow-sm"
+              onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+              autoFocus={addMode === "text"}
+            />
+
+            {parsedTask?.subtasks?.length > 0 && (
+              <div className="bg-gray-50 rounded-md px-3 py-2 border border-gray-200">
+                <p className="text-xs font-medium text-gray-500 mb-1.5">
+                  Subtasks to create:
+                </p>
+                {parsedTask.subtasks.map((sub: string, i: number) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-2 text-sm text-gray-700 py-0.5"
+                  >
+                    <Square className="w-3.5 h-3.5 text-gray-400" />
+                    {sub}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <Textarea
+              placeholder="Description (optional)"
+              value={newTask.description}
+              onChange={(e) =>
+                setNewTask({ ...newTask, description: e.target.value })
+              }
+              className="bg-white border-gray-200 text-gray-900 shadow-sm"
+              rows={2}
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <Select
+                value={newTask.priority}
+                onValueChange={(v) =>
+                  v && setNewTask({ ...newTask, priority: v })
+                }
+              >
+                <SelectTrigger className="bg-white border-gray-200 text-gray-700 shadow-sm">
+                  <SelectValue placeholder="Priority" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-gray-200">
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input
+                placeholder="Project"
+                value={newTask.project}
+                onChange={(e) =>
+                  setNewTask({ ...newTask, project: e.target.value })
+                }
+                className="bg-white border-gray-200 text-gray-900 shadow-sm"
+              />
+            </div>
+            <Input
+              type="date"
+              value={newTask.dueDate}
+              onChange={(e) =>
+                setNewTask({ ...newTask, dueDate: e.target.value })
+              }
+              className="bg-white border-gray-200 text-gray-900 shadow-sm"
+            />
+            <Button
+              onClick={handleCreate}
+              disabled={submitting || !newTask.name.trim()}
+              className="w-full bg-violet-600 hover:bg-violet-700 text-white shadow-sm"
+            >
+              {submitting ? "Creating..." : "Create Task"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Context menu */}
       {contextMenu && (
@@ -577,11 +713,92 @@ export function TasksView() {
         />
       )}
 
-      {/* Toast notification */}
+      {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-800 border border-zinc-700 text-white text-sm px-4 py-2 rounded-lg shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
           {toast}
         </div>
+      )}
+    </div>
+  );
+}
+
+// ============ VOICE RECORDER UI ============
+
+function VoiceRecorderUI({
+  onTranscription,
+  isParsing,
+}: {
+  onTranscription: (text: string) => void;
+  isParsing: boolean;
+}) {
+  const voice = useVoiceRecording({ onTranscription });
+
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-4 py-4">
+      {/* Record button */}
+      <button
+        onClick={voice.isRecording ? voice.stopRecording : voice.startRecording}
+        disabled={isParsing || voice.isTranscribing}
+        className={cn(
+          "w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-lg",
+          voice.isRecording
+            ? "bg-red-500 hover:bg-red-600 animate-pulse"
+            : isParsing || voice.isTranscribing
+              ? "bg-gray-200 cursor-not-allowed"
+              : "bg-red-500 hover:bg-red-600 hover:scale-105"
+        )}
+      >
+        {voice.isRecording ? (
+          <MicOff className="w-8 h-8 text-white" />
+        ) : isParsing || voice.isTranscribing ? (
+          <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+        ) : (
+          <Mic className="w-8 h-8 text-white" />
+        )}
+      </button>
+
+      {/* Status text */}
+      <div className="text-center">
+        {voice.isRecording ? (
+          <>
+            <p className="text-sm font-medium text-red-600">Recording...</p>
+            <p className="text-xs text-gray-500 tabular-nums mt-0.5">
+              {formatTime(voice.duration)}
+            </p>
+          </>
+        ) : voice.isTranscribing ? (
+          <p className="text-sm text-gray-500">Transcribing...</p>
+        ) : isParsing ? (
+          <p className="text-sm text-violet-600 flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5" /> Parsing with AI...
+          </p>
+        ) : (
+          <p className="text-sm text-gray-400">
+            Tap to record your task
+          </p>
+        )}
+      </div>
+
+      {/* Transcript preview */}
+      {voice.transcript && (
+        <div className="w-full bg-gray-50 rounded-lg border border-gray-200 p-3">
+          <p className="text-xs font-medium text-gray-500 mb-1">
+            Transcript:
+          </p>
+          <p className="text-sm text-gray-700">{voice.transcript}</p>
+        </div>
+      )}
+
+      {/* Error */}
+      {voice.error && (
+        <p className="text-sm text-red-500">{voice.error}</p>
       )}
     </div>
   );
@@ -622,21 +839,21 @@ function ProjectGroup({
   const doneTasks = tasks.filter((t) => t.fields.Status === "done").length;
 
   return (
-    <div className="mb-4">
+    <div className="mb-5">
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center gap-2 px-2 py-1.5 w-full text-left group"
+        className="flex items-center gap-2 px-2 py-2 w-full text-left group"
       >
         {collapsed ? (
-          <ChevronRight className="w-4 h-4 text-zinc-500" />
+          <ChevronRight className="w-4 h-4 text-gray-400" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-zinc-500" />
+          <ChevronDown className="w-4 h-4 text-gray-400" />
         )}
-        <FolderOpen className="w-4 h-4 text-violet-400" />
-        <span className="text-sm font-semibold text-zinc-200">
+        <FolderOpen className="w-4 h-4 text-violet-500" />
+        <span className="text-sm font-semibold text-gray-800">
           {project || "Standalone Tasks"}
         </span>
-        <span className="text-xs text-zinc-600 ml-1">
+        <span className="text-xs text-gray-400 ml-1">
           {doneTasks}/{tasks.length}
         </span>
       </button>
@@ -666,7 +883,7 @@ function ProjectGroup({
   );
 }
 
-// ============ TASK ROW (recursive) ============
+// ============ TASK ROW ============
 
 function TaskRow({
   node,
@@ -704,7 +921,7 @@ function TaskRow({
   const isSelected = selectedTaskId === node.id;
   const hasChildren = node.subtasks.length > 0;
   const completion = hasChildren ? getCompletionPct(node) : null;
-  const indentPx = node.depth * 24;
+  const indentPx = node.depth * 28;
 
   useEffect(() => {
     if (editing) inputRef.current?.focus();
@@ -723,20 +940,20 @@ function TaskRow({
     <>
       <div
         className={cn(
-          "flex items-center gap-1.5 px-2 py-1.5 rounded-md group transition-colors cursor-default",
+          "flex items-center gap-2 px-3 py-2.5 rounded-lg group transition-colors cursor-default",
           isSelected
-            ? "bg-violet-500/10 border border-violet-500/20"
-            : "hover:bg-zinc-800/50 border border-transparent",
-          isDone && "opacity-60"
+            ? "bg-violet-50 border border-violet-200"
+            : "hover:bg-gray-50 border border-transparent",
+          isDone && "opacity-50"
         )}
-        style={{ paddingLeft: `${8 + indentPx}px` }}
+        style={{ paddingLeft: `${12 + indentPx}px` }}
         onClick={() => onSelect(node.id)}
         onContextMenu={(e) => {
           e.preventDefault();
           onContextMenu(e.clientX, e.clientY, node.id);
         }}
       >
-        {/* Expand/collapse chevron */}
+        {/* Expand chevron */}
         <div className="w-5 h-5 flex items-center justify-center shrink-0">
           {hasChildren ? (
             <button
@@ -744,7 +961,7 @@ function TaskRow({
                 e.stopPropagation();
                 onToggleExpand(node.id);
               }}
-              className="text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="text-gray-400 hover:text-gray-600 transition-colors"
             >
               {isExpanded ? (
                 <ChevronDown className="w-4 h-4" />
@@ -766,18 +983,18 @@ function TaskRow({
           className={cn(
             "w-5 h-5 flex items-center justify-center shrink-0 rounded transition-colors",
             isDone
-              ? "text-emerald-400 hover:text-emerald-300"
-              : "text-zinc-600 hover:text-zinc-400"
+              ? "text-emerald-500 hover:text-emerald-600"
+              : "text-gray-300 hover:text-gray-500"
           )}
         >
           {isDone ? (
-            <CheckSquare className="w-4 h-4" />
+            <CheckSquare className="w-[18px] h-[18px]" />
           ) : (
-            <Square className="w-4 h-4" />
+            <Square className="w-[18px] h-[18px]" />
           )}
         </button>
 
-        {/* Task title (inline editable) */}
+        {/* Title */}
         {editing ? (
           <input
             ref={inputRef}
@@ -791,7 +1008,7 @@ function TaskRow({
                 setEditing(false);
               }
             }}
-            className="flex-1 bg-transparent border-b border-violet-500 text-sm text-white outline-none px-1 py-0"
+            className="flex-1 bg-transparent border-b-2 border-violet-500 text-sm text-gray-900 outline-none px-1 py-0"
           />
         ) : (
           <span
@@ -800,17 +1017,17 @@ function TaskRow({
               setEditing(true);
             }}
             className={cn(
-              "flex-1 text-sm cursor-text select-none truncate",
-              isDone ? "line-through text-zinc-500" : "text-zinc-100"
+              "flex-1 text-[15px] cursor-text select-none truncate",
+              isDone ? "line-through text-gray-400" : "text-gray-800"
             )}
           >
             {node.fields.Name}
           </span>
         )}
 
-        {/* Completion badge for parents */}
+        {/* Completion */}
         {completion !== null && !isDone && (
-          <span className="text-[10px] text-zinc-500 tabular-nums shrink-0">
+          <span className="text-[10px] text-gray-400 tabular-nums shrink-0">
             {completion}%
           </span>
         )}
@@ -819,7 +1036,7 @@ function TaskRow({
         <div
           className={cn(
             "w-2 h-2 rounded-full shrink-0",
-            PRIORITY_DOT[node.fields.Priority] || "bg-zinc-500"
+            PRIORITY_DOT[node.fields.Priority] || "bg-gray-400"
           )}
           title={node.fields.Priority}
         />
@@ -837,10 +1054,10 @@ function TaskRow({
                 e.stopPropagation();
                 onAddSubtask(node.id);
               }}
-              className="p-1 text-zinc-600 hover:text-violet-400 transition-colors"
+              className="p-1 text-gray-300 hover:text-violet-500 transition-colors"
               title="Add subtask"
             >
-              <PlusCircle className="w-3.5 h-3.5" />
+              <PlusCircle className="w-4 h-4" />
             </button>
           )}
           <button
@@ -848,15 +1065,14 @@ function TaskRow({
               e.stopPropagation();
               onDelete(node.id);
             }}
-            className="p-1 text-zinc-600 hover:text-red-400 transition-colors"
+            className="p-1 text-gray-300 hover:text-red-500 transition-colors"
             title="Delete"
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Subtasks */}
       {isExpanded &&
         node.subtasks.map((child) => (
           <TaskRow
@@ -886,12 +1102,12 @@ function DueDateBadge({ dateStr }: { dateStr: string }) {
   return (
     <span
       className={cn(
-        "flex items-center gap-1 text-[11px] shrink-0 tabular-nums",
+        "flex items-center gap-1 text-xs shrink-0 tabular-nums",
         overdue
-          ? "text-red-400"
+          ? "text-red-500"
           : soon
-            ? "text-amber-400"
-            : "text-zinc-500"
+            ? "text-amber-500"
+            : "text-gray-400"
       )}
     >
       <Calendar className="w-3 h-3" />
@@ -921,25 +1137,25 @@ function ContextMenu({
 }) {
   return (
     <div
-      className="fixed z-50 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 w-48 text-sm"
+      className="fixed z-50 bg-white border border-gray-200 rounded-xl shadow-xl py-1.5 w-48 text-sm"
       style={{ left: x, top: y }}
       onClick={(e) => e.stopPropagation()}
     >
       <button
         onClick={onAddSubtask}
-        className="flex items-center gap-2 w-full px-3 py-1.5 text-zinc-300 hover:bg-zinc-800 transition-colors text-left"
+        className="flex items-center gap-2 w-full px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors text-left"
       >
         <PlusCircle className="w-3.5 h-3.5" /> Add subtask
       </button>
-      <div className="border-t border-zinc-800 my-1" />
-      <div className="px-3 py-1 text-[10px] text-zinc-500 uppercase tracking-wider">
+      <div className="border-t border-gray-100 my-1" />
+      <div className="px-3 py-1 text-[10px] text-gray-400 uppercase tracking-wider">
         Priority
       </div>
       {["urgent", "high", "medium", "low"].map((p) => (
         <button
           key={p}
           onClick={() => onChangePriority(p)}
-          className="flex items-center gap-2 w-full px-3 py-1.5 text-zinc-300 hover:bg-zinc-800 transition-colors text-left"
+          className="flex items-center gap-2 w-full px-3 py-1.5 text-gray-700 hover:bg-gray-50 transition-colors text-left"
         >
           <div
             className={cn("w-2 h-2 rounded-full", PRIORITY_DOT[p])}
@@ -947,23 +1163,23 @@ function ContextMenu({
           <span className="capitalize">{p}</span>
         </button>
       ))}
-      <div className="border-t border-zinc-800 my-1" />
-      <div className="px-3 py-1 text-[10px] text-zinc-500 uppercase tracking-wider">
+      <div className="border-t border-gray-100 my-1" />
+      <div className="px-3 py-1 text-[10px] text-gray-400 uppercase tracking-wider">
         Status
       </div>
       {["todo", "in_progress", "done", "backlog"].map((s) => (
         <button
           key={s}
           onClick={() => onChangeStatus(s)}
-          className="flex items-center gap-2 w-full px-3 py-1.5 text-zinc-300 hover:bg-zinc-800 transition-colors text-left"
+          className="flex items-center gap-2 w-full px-3 py-1.5 text-gray-700 hover:bg-gray-50 transition-colors text-left"
         >
           {STATUS_LABELS[s]}
         </button>
       ))}
-      <div className="border-t border-zinc-800 my-1" />
+      <div className="border-t border-gray-100 my-1" />
       <button
         onClick={onDelete}
-        className="flex items-center gap-2 w-full px-3 py-1.5 text-red-400 hover:bg-zinc-800 transition-colors text-left"
+        className="flex items-center gap-2 w-full px-3 py-2 text-red-500 hover:bg-red-50 transition-colors text-left"
       >
         <Trash2 className="w-3.5 h-3.5" /> Delete
       </button>
@@ -971,17 +1187,17 @@ function ContextMenu({
   );
 }
 
-// ============ KANBAN VIEW (preserved from original) ============
+// ============ KANBAN VIEW ============
 
 const KANBAN_COLUMNS = [
-  { id: "backlog" as const, label: "Backlog", color: "text-zinc-500" },
-  { id: "todo" as const, label: "To Do", color: "text-blue-400" },
+  { id: "backlog" as const, label: "Backlog", color: "text-gray-400" },
+  { id: "todo" as const, label: "To Do", color: "text-blue-500" },
   {
     id: "in_progress" as const,
     label: "In Progress",
-    color: "text-yellow-400",
+    color: "text-amber-500",
   },
-  { id: "done" as const, label: "Done", color: "text-emerald-400" },
+  { id: "done" as const, label: "Done", color: "text-emerald-500" },
 ];
 
 function KanbanView({
@@ -1015,7 +1231,7 @@ function KanbanView({
             </span>
             <Badge
               variant="secondary"
-              className="bg-zinc-800 text-zinc-400 text-xs ml-auto"
+              className="bg-gray-100 text-gray-500 text-xs ml-auto"
             >
               {tasksByStatus(col.id).length}
             </Badge>
@@ -1026,10 +1242,10 @@ function KanbanView({
               return (
                 <div
                   key={task.id}
-                  className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 group hover:border-zinc-700 transition-colors"
+                  className="p-3.5 rounded-xl bg-white border border-gray-200 group hover:border-gray-300 hover:shadow-sm transition-all"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-medium text-white leading-snug">
+                    <p className="text-sm font-medium text-gray-800 leading-snug">
                       {task.fields.Name}
                     </p>
                     <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
@@ -1041,7 +1257,7 @@ function KanbanView({
                               advanceOrder[currentIdx + 1]
                             )
                           }
-                          className="p-1 text-zinc-500 hover:text-violet-400"
+                          className="p-1 text-gray-300 hover:text-violet-500"
                           title="Advance"
                         >
                           <ChevronRight className="w-3.5 h-3.5" />
@@ -1049,7 +1265,7 @@ function KanbanView({
                       )}
                       <button
                         onClick={() => onDelete(task.id)}
-                        className="p-1 text-zinc-500 hover:text-red-400"
+                        className="p-1 text-gray-300 hover:text-red-500"
                         title="Delete"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -1057,11 +1273,11 @@ function KanbanView({
                     </div>
                   </div>
                   {task.fields.Description && (
-                    <p className="text-xs text-zinc-500 mt-1 line-clamp-2">
+                    <p className="text-xs text-gray-400 mt-1 line-clamp-2">
                       {task.fields.Description}
                     </p>
                   )}
-                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  <div className="flex items-center gap-2 mt-2.5 flex-wrap">
                     <Badge
                       variant="outline"
                       className={cn(
@@ -1074,7 +1290,7 @@ function KanbanView({
                     {task.fields.Project && (
                       <Badge
                         variant="outline"
-                        className="text-xs bg-violet-500/10 text-violet-400 border-violet-500/20"
+                        className="text-xs bg-violet-50 text-violet-600 border-violet-200"
                       >
                         {task.fields.Project}
                       </Badge>

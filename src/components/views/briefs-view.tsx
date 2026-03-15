@@ -32,7 +32,6 @@ function cleanBriefContent(raw: string): string {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
-    // Detect CSS start
     if (
       !inCss &&
       i < 5 &&
@@ -43,7 +42,6 @@ function cleanBriefContent(raw: string): string {
     if (inCss) {
       braceDepth += (line.match(/{/g) || []).length;
       braceDepth -= (line.match(/}/g) || []).length;
-      // Check if we've closed all braces and next content isn't CSS
       if (braceDepth <= 0 && i > 2) {
         const nextLine = lines
           .slice(i + 1)
@@ -93,23 +91,23 @@ function BriefCard({ brief }: { brief: Brief }) {
     : "";
 
   return (
-    <Card className="bg-zinc-900/50 border-zinc-800 hover:border-zinc-700 transition-colors">
+    <Card className="bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all">
       <CardHeader
         className="cursor-pointer pb-2"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-zinc-500 mb-1">{formattedDate}</p>
-            <CardTitle className="text-base text-white leading-tight">
+            <p className="text-xs text-gray-400 mb-1">{formattedDate}</p>
+            <CardTitle className="text-base text-gray-900 leading-tight">
               {f.Title || "Untitled Brief"}
             </CardTitle>
           </div>
           <div className="flex-shrink-0 mt-1">
             {expanded ? (
-              <ChevronDown className="w-4 h-4 text-zinc-500" />
+              <ChevronDown className="w-4 h-4 text-gray-400" />
             ) : (
-              <ChevronRight className="w-4 h-4 text-zinc-500" />
+              <ChevronRight className="w-4 h-4 text-gray-400" />
             )}
           </div>
         </div>
@@ -119,7 +117,7 @@ function BriefCard({ brief }: { brief: Brief }) {
               <Badge
                 key={tag}
                 variant="outline"
-                className="text-[10px] border-zinc-700 text-zinc-400"
+                className="text-[10px] border-gray-200 text-gray-500"
               >
                 {tag}
               </Badge>
@@ -133,12 +131,12 @@ function BriefCard({ brief }: { brief: Brief }) {
           {f.Summary && (
             <div>
               <div className="flex items-center gap-1.5 mb-1.5">
-                <TrendingUp className="w-3.5 h-3.5 text-blue-400" />
-                <span className="text-xs font-medium text-blue-400 uppercase tracking-wider">
+                <TrendingUp className="w-3.5 h-3.5 text-blue-500" />
+                <span className="text-xs font-medium text-blue-500 uppercase tracking-wider">
                   Executive Summary
                 </span>
               </div>
-              <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-line">
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
                 {f.Summary}
               </p>
             </div>
@@ -147,26 +145,26 @@ function BriefCard({ brief }: { brief: Brief }) {
           {f.KeyInsights && (
             <div>
               <div className="flex items-center gap-1.5 mb-1.5">
-                <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
-                <span className="text-xs font-medium text-amber-400 uppercase tracking-wider">
+                <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+                <span className="text-xs font-medium text-amber-500 uppercase tracking-wider">
                   Key Insights
                 </span>
               </div>
-              <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-line">
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
                 {f.KeyInsights}
               </p>
             </div>
           )}
 
           {f.BigIdea && (
-            <div className="bg-violet-500/10 border border-violet-500/20 rounded-lg p-3">
+            <div className="bg-violet-50 border border-violet-200 rounded-lg p-3">
               <div className="flex items-center gap-1.5 mb-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-violet-400" />
-                <span className="text-xs font-medium text-violet-400 uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5 text-violet-500" />
+                <span className="text-xs font-medium text-violet-500 uppercase tracking-wider">
                   Big Idea
                 </span>
               </div>
-              <p className="text-sm text-zinc-200 leading-relaxed whitespace-pre-line">
+              <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-line">
                 {f.BigIdea}
               </p>
             </div>
@@ -174,17 +172,19 @@ function BriefCard({ brief }: { brief: Brief }) {
 
           {f.FullContent && (
             <Dialog>
-              <DialogTrigger className="inline-flex items-center gap-1.5 text-sm text-violet-400 hover:text-violet-300 transition-colors">
+              <DialogTrigger className="inline-flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 transition-colors">
                 <BookOpen className="w-4 h-4" />
                 Read Full Brief
               </DialogTrigger>
-              <DialogContent className="bg-zinc-900 border-zinc-800 max-w-2xl max-h-[85vh]">
+              <DialogContent className="bg-white border-gray-200 shadow-xl max-w-2xl max-h-[85vh]">
                 <DialogHeader>
-                  <DialogTitle className="text-white">{f.Title}</DialogTitle>
-                  <p className="text-xs text-zinc-500">{formattedDate}</p>
+                  <DialogTitle className="text-gray-900">
+                    {f.Title}
+                  </DialogTitle>
+                  <p className="text-xs text-gray-400">{formattedDate}</p>
                 </DialogHeader>
                 <ScrollArea className="max-h-[65vh] pr-4">
-                  <div className="text-sm text-zinc-300 leading-relaxed whitespace-pre-line">
+                  <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
                     {cleanBriefContent(f.FullContent)}
                   </div>
                 </ScrollArea>
@@ -203,7 +203,7 @@ export function BriefsView() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-pulse text-zinc-500">Loading briefs...</div>
+        <div className="animate-pulse text-gray-400">Loading briefs...</div>
       </div>
     );
   }
@@ -211,14 +211,14 @@ export function BriefsView() {
   const briefsList = briefs || [];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5 max-w-3xl">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Newspaper className="w-5 h-5 text-violet-400" />
-          <h2 className="text-lg font-semibold text-white">Brief Archive</h2>
+          <Newspaper className="w-5 h-5 text-violet-500" />
+          <h2 className="text-lg font-semibold text-gray-900">Brief Archive</h2>
           <Badge
             variant="outline"
-            className="border-zinc-700 text-zinc-400 text-xs"
+            className="border-gray-200 text-gray-500 text-xs"
           >
             {briefsList.length}
           </Badge>
@@ -226,8 +226,8 @@ export function BriefsView() {
       </div>
 
       {briefsList.length === 0 ? (
-        <Card className="bg-zinc-900/50 border-zinc-800">
-          <CardContent className="flex flex-col items-center justify-center py-12 text-zinc-500">
+        <Card className="bg-white border-gray-200">
+          <CardContent className="flex flex-col items-center justify-center py-12 text-gray-400">
             <Newspaper className="w-8 h-8 mb-2 opacity-50" />
             <p className="text-sm">No briefs yet</p>
             <p className="text-xs mt-1">

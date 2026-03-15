@@ -13,8 +13,6 @@ import {
   TrendingUp,
   Zap,
   BarChart3,
-  ArrowUp,
-  ArrowDown,
 } from "lucide-react";
 import {
   BarChart,
@@ -52,13 +50,13 @@ export function UsageView() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="h-8 w-48 bg-zinc-800 rounded animate-pulse" />
+      <div className="space-y-6 max-w-5xl">
+        <div className="h-8 w-48 bg-gray-100 rounded animate-pulse" />
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {[...Array(5)].map((_, i) => (
             <div
               key={i}
-              className="h-28 bg-zinc-900 rounded-xl animate-pulse"
+              className="h-28 bg-gray-50 rounded-xl animate-pulse"
             />
           ))}
         </div>
@@ -71,8 +69,8 @@ export function UsageView() {
   const { costs, tokens, models, dailyChart } = data;
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-white">Usage & Costs</h1>
+    <div className="space-y-6 max-w-5xl">
+      <h1 className="text-2xl font-bold text-gray-900">Usage & Costs</h1>
 
       {/* Cost cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
@@ -94,12 +92,11 @@ export function UsageView() {
         />
       </div>
 
-      {/* Charts row */}
+      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Daily cost chart */}
-        <Card className="bg-zinc-900 border-zinc-800 lg:col-span-2">
+        <Card className="bg-white border-gray-200 shadow-sm lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-white text-lg">
+            <CardTitle className="text-gray-900 text-lg">
               Daily Costs (30 days)
             </CardTitle>
           </CardHeader>
@@ -109,28 +106,32 @@ export function UsageView() {
                 <BarChart data={dailyChart}>
                   <CartesianGrid
                     strokeDasharray="3 3"
-                    stroke="#27272a"
+                    stroke="#f3f4f6"
                     vertical={false}
                   />
                   <XAxis
                     dataKey="date"
-                    tick={{ fill: "#71717a", fontSize: 11 }}
+                    tick={{ fill: "#9ca3af", fontSize: 11 }}
                     tickFormatter={(v) => v.slice(5)}
-                    stroke="#27272a"
+                    stroke="#e5e7eb"
                   />
                   <YAxis
-                    tick={{ fill: "#71717a", fontSize: 11 }}
+                    tick={{ fill: "#9ca3af", fontSize: 11 }}
                     tickFormatter={(v) => `$${v}`}
-                    stroke="#27272a"
+                    stroke="#e5e7eb"
                   />
                   <Tooltip
                     contentStyle={{
-                      background: "#18181b",
-                      border: "1px solid #3f3f46",
+                      background: "#ffffff",
+                      border: "1px solid #e5e7eb",
                       borderRadius: "8px",
-                      color: "#fff",
+                      color: "#1f2937",
+                      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                     }}
-                    formatter={(value) => [`$${Number(value).toFixed(4)}`, "Cost"]}
+                    formatter={(value) => [
+                      `$${Number(value).toFixed(4)}`,
+                      "Cost",
+                    ]}
                     labelFormatter={(label) => label}
                   />
                   <Bar
@@ -144,10 +145,9 @@ export function UsageView() {
           </CardContent>
         </Card>
 
-        {/* Model breakdown pie */}
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-white border-gray-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-white text-lg">
+            <CardTitle className="text-gray-900 text-lg">
               Cost by Model
             </CardTitle>
           </CardHeader>
@@ -173,10 +173,10 @@ export function UsageView() {
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      background: "#18181b",
-                      border: "1px solid #3f3f46",
+                      background: "#ffffff",
+                      border: "1px solid #e5e7eb",
                       borderRadius: "8px",
-                      color: "#fff",
+                      color: "#1f2937",
                     }}
                     formatter={(value) => `$${Number(value).toFixed(4)}`}
                   />
@@ -184,7 +184,7 @@ export function UsageView() {
                     formatter={(value: string) =>
                       value.replace("claude-", "").replace("anthropic/", "")
                     }
-                    wrapperStyle={{ fontSize: "11px", color: "#a1a1aa" }}
+                    wrapperStyle={{ fontSize: "11px", color: "#6b7280" }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -194,9 +194,9 @@ export function UsageView() {
       </div>
 
       {/* Token breakdown */}
-      <Card className="bg-zinc-900 border-zinc-800">
+      <Card className="bg-white border-gray-200 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-white text-lg">Token Usage</CardTitle>
+          <CardTitle className="text-gray-900 text-lg">Token Usage</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
@@ -210,24 +210,26 @@ export function UsageView() {
       </Card>
 
       {/* Model table */}
-      <Card className="bg-zinc-900 border-zinc-800">
+      <Card className="bg-white border-gray-200 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-white text-lg">Model Breakdown</CardTitle>
+          <CardTitle className="text-gray-900 text-lg">
+            Model Breakdown
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-zinc-800">
-                <th className="text-left text-xs text-zinc-500 font-medium p-3">
+              <tr className="border-b border-gray-200">
+                <th className="text-left text-xs text-gray-500 font-medium p-3">
                   Model
                 </th>
-                <th className="text-right text-xs text-zinc-500 font-medium p-3">
+                <th className="text-right text-xs text-gray-500 font-medium p-3">
                   Calls
                 </th>
-                <th className="text-right text-xs text-zinc-500 font-medium p-3">
+                <th className="text-right text-xs text-gray-500 font-medium p-3">
                   Tokens
                 </th>
-                <th className="text-right text-xs text-zinc-500 font-medium p-3">
+                <th className="text-right text-xs text-gray-500 font-medium p-3">
                   Cost
                 </th>
               </tr>
@@ -236,18 +238,18 @@ export function UsageView() {
               {models.map((m, i) => (
                 <tr
                   key={i}
-                  className="border-b border-zinc-800/50 hover:bg-zinc-800/30"
+                  className="border-b border-gray-100 hover:bg-gray-50"
                 >
-                  <td className="p-3 text-sm text-white font-mono">
+                  <td className="p-3 text-sm text-gray-800 font-mono">
                     {m.model.replace("anthropic/", "")}
                   </td>
-                  <td className="p-3 text-sm text-zinc-400 text-right tabular-nums">
+                  <td className="p-3 text-sm text-gray-500 text-right tabular-nums">
                     {m.calls.toLocaleString()}
                   </td>
-                  <td className="p-3 text-sm text-zinc-400 text-right tabular-nums">
+                  <td className="p-3 text-sm text-gray-500 text-right tabular-nums">
                     {formatTokens(m.tokens)}
                   </td>
-                  <td className="p-3 text-sm text-white text-right tabular-nums font-medium">
+                  <td className="p-3 text-sm text-gray-900 text-right tabular-nums font-medium">
                     ${m.cost.toFixed(2)}
                   </td>
                 </tr>
@@ -275,21 +277,21 @@ function CostCard({
 }) {
   const pct = budget ? (value / budget) * 100 : 0;
   return (
-    <Card className="bg-zinc-900 border-zinc-800">
+    <Card className="bg-white border-gray-200 shadow-sm">
       <CardContent className="pt-6">
         <div className="flex items-center gap-2 mb-1">
-          <Icon className="w-4 h-4 text-zinc-400" />
-          <span className="text-xs text-zinc-400">{label}</span>
+          <Icon className="w-4 h-4 text-gray-400" />
+          <span className="text-xs text-gray-500">{label}</span>
         </div>
         <p
           className={`text-xl font-bold tabular-nums ${
-            warn ? "text-amber-400" : "text-white"
+            warn ? "text-amber-500" : "text-gray-900"
           }`}
         >
           ${value.toFixed(2)}
         </p>
         {budget && (
-          <p className="text-xs text-zinc-500 mt-1">
+          <p className="text-xs text-gray-400 mt-1">
             {pct.toFixed(0)}% of ${budget} budget
           </p>
         )}
@@ -309,10 +311,10 @@ function TokenStat({
 }) {
   return (
     <div>
-      <p className="text-xs text-zinc-500 mb-1">{label}</p>
+      <p className="text-xs text-gray-500 mb-1">{label}</p>
       <p
         className={`text-lg font-bold tabular-nums ${
-          highlight ? "text-violet-400" : "text-white"
+          highlight ? "text-violet-600" : "text-gray-900"
         }`}
       >
         {formatTokens(value)}

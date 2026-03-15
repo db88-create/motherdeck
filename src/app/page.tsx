@@ -12,9 +12,9 @@ export default function Home() {
   const [tab, setTab] = useState<TabId>("command");
 
   return (
-    <div className="flex h-dvh overflow-hidden">
+    <div className="flex h-dvh overflow-hidden bg-white">
       <Nav active={tab} onChange={setTab} />
-      <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pb-24 md:pb-8">
+      <main className="flex-1 overflow-y-auto p-5 md:p-8 lg:p-10 pb-24 md:pb-8">
         {tab === "command" && <CommandCenter />}
         {tab === "tasks" && <TasksView />}
         {tab === "usage" && <UsageView />}
