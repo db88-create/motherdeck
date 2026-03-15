@@ -54,14 +54,14 @@ import {
 // ============ CONSTANTS ============
 
 const PRIORITY_COLORS: Record<string, string> = {
-  urgent: "bg-red-50 text-[#ef4444] border-red-100",
+  urgent: "bg-red-50 text-[var(--md-error)] border-red-100",
   high: "bg-orange-50 text-orange-600 border-orange-100",
-  medium: "bg-blue-50 text-[#3b82f6] border-blue-100",
-  low: "bg-[#f5f5f5] text-[#737373] border-[#e5e5e5]",
+  medium: "bg-blue-50 text-[var(--md-info)] border-blue-100",
+  low: "bg-[var(--md-surface)] text-[var(--md-text-secondary)] border-[var(--md-border)]",
 };
 
 const PRIORITY_DOT: Record<string, string> = {
-  urgent: "bg-[#ef4444]",
+  urgent: "bg-[var(--md-error)]",
   high: "bg-[#f59e0b]",
   medium: "bg-[#3b82f6]",
   low: "bg-[#a3a3a3]",
@@ -342,12 +342,12 @@ export function TasksView() {
   if (loading) {
     return (
       <div className="space-y-6 max-w-4xl">
-        <div className="h-8 w-48 bg-[#f5f5f5] rounded-lg animate-pulse" />
+        <div className="h-8 w-48 bg-[var(--md-surface)] rounded-lg animate-pulse" />
         <div className="space-y-2">
           {[...Array(8)].map((_, i) => (
             <div
               key={i}
-              className="h-14 bg-[#fafafa] rounded-lg animate-pulse"
+              className="h-14 bg-[var(--md-bg-alt)] rounded-lg animate-pulse"
             />
           ))}
         </div>
@@ -360,20 +360,20 @@ export function TasksView() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-[#0a0a0a]">Tasks</h1>
-          <p className="text-sm text-[#737373] mt-1">
+          <h1 className="text-2xl font-semibold text-[var(--md-text-primary)]">Tasks</h1>
+          <p className="text-sm text-[var(--md-text-secondary)] mt-1">
             {activeTasks} active &middot; {doneTasks} completed
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex bg-[#f5f5f5] rounded-lg p-1">
+          <div className="flex bg-[var(--md-surface)] rounded-lg p-1">
             <button
               onClick={() => setView("hierarchy")}
               className={cn(
                 "px-4 py-2 text-xs font-medium rounded-md transition-all duration-200 ease-in-out",
                 view === "hierarchy"
-                  ? "bg-white text-[#0a0a0a] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
-                  : "text-[#737373] hover:text-[#404040]"
+                  ? "bg-[var(--md-bg)] text-[var(--md-text-primary)] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+                  : "text-[var(--md-text-secondary)] hover:text-[var(--md-text-body)]"
               )}
             >
               Hierarchy
@@ -383,8 +383,8 @@ export function TasksView() {
               className={cn(
                 "px-4 py-2 text-xs font-medium rounded-md transition-all duration-200 ease-in-out",
                 view === "kanban"
-                  ? "bg-white text-[#0a0a0a] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
-                  : "text-[#737373] hover:text-[#404040]"
+                  ? "bg-[var(--md-bg)] text-[var(--md-text-primary)] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+                  : "text-[var(--md-text-secondary)] hover:text-[var(--md-text-body)]"
               )}
             >
               Kanban
@@ -415,7 +415,7 @@ export function TasksView() {
       {/* Filters */}
       <div className="flex items-center gap-4 flex-wrap">
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a3a3a3]" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--md-text-tertiary)]" />
           <Input
             placeholder="Search tasks..."
             value={searchQuery}
@@ -427,11 +427,11 @@ export function TasksView() {
           value={statusFilter}
           onValueChange={(v) => v && setStatusFilter(v)}
         >
-          <SelectTrigger className="bg-white border-[#e5e5e5] text-[#525252] h-10 text-sm w-32">
-            <Filter className="w-3.5 h-3.5 mr-2 text-[#a3a3a3]" />
+          <SelectTrigger className="bg-[var(--md-bg)] border-[var(--md-border)] text-[var(--md-text-body)] h-10 text-sm w-32">
+            <Filter className="w-3.5 h-3.5 mr-2 text-[var(--md-text-tertiary)]" />
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-white border-[#e5e5e5]">
+          <SelectContent className="bg-[var(--md-bg)] border-[var(--md-border)]">
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="all">All</SelectItem>
             <SelectItem value="todo">To Do</SelectItem>
@@ -444,10 +444,10 @@ export function TasksView() {
           value={groupBy}
           onValueChange={(v) => v && setGroupBy(v as "project" | "none")}
         >
-          <SelectTrigger className="bg-white border-[#e5e5e5] text-[#525252] h-10 text-sm w-40">
+          <SelectTrigger className="bg-[var(--md-bg)] border-[var(--md-border)] text-[var(--md-text-body)] h-10 text-sm w-40">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-white border-[#e5e5e5]">
+          <SelectContent className="bg-[var(--md-bg)] border-[var(--md-border)]">
             <SelectItem value="project">Group by Project</SelectItem>
             <SelectItem value="none">No Grouping</SelectItem>
           </SelectContent>
@@ -502,9 +502,9 @@ export function TasksView() {
             </div>
           )}
           {filteredTree.length === 0 && (
-            <div className="text-center py-16 text-[#a3a3a3]">
+            <div className="text-center py-16 text-[var(--md-text-tertiary)]">
               <ListTodo className="w-10 h-10 mx-auto mb-4 opacity-40" />
-              <p className="text-sm text-[#737373]">No tasks match your filters</p>
+              <p className="text-sm text-[var(--md-text-secondary)]">No tasks match your filters</p>
               <Button
                 variant="ghost"
                 size="sm"
@@ -535,22 +535,22 @@ export function TasksView() {
           }
         }}
       >
-        <DialogContent className="bg-white border-[#e5e5e5] shadow-[0_1px_3px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)] sm:max-w-lg">
+        <DialogContent className="bg-[var(--md-bg)] border-[var(--md-border)] shadow-[0_1px_3px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)] sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-[#0a0a0a] text-xl font-semibold">
+            <DialogTitle className="text-[var(--md-text-primary)] text-xl font-semibold">
               {newTask.parentTaskId ? "New Subtask" : "New Task"}
             </DialogTitle>
           </DialogHeader>
 
           {/* Voice / Text tabs */}
-          <div className="flex bg-[#f5f5f5] rounded-lg p-1 mb-4">
+          <div className="flex bg-[var(--md-surface)] rounded-lg p-1 mb-4">
             <button
               onClick={() => setAddMode("voice")}
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-md transition-all duration-200 ease-in-out",
                 addMode === "voice"
-                  ? "bg-white text-[#0a0a0a] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
-                  : "text-[#737373] hover:text-[#404040]"
+                  ? "bg-[var(--md-bg)] text-[var(--md-text-primary)] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+                  : "text-[var(--md-text-secondary)] hover:text-[var(--md-text-body)]"
               )}
             >
               <Mic className="w-4 h-4" /> Voice
@@ -560,8 +560,8 @@ export function TasksView() {
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-md transition-all duration-200 ease-in-out",
                 addMode === "text"
-                  ? "bg-white text-[#0a0a0a] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
-                  : "text-[#737373] hover:text-[#404040]"
+                  ? "bg-[var(--md-bg)] text-[var(--md-text-primary)] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+                  : "text-[var(--md-text-secondary)] hover:text-[var(--md-text-body)]"
               )}
             >
               <Keyboard className="w-4 h-4" /> Text
@@ -569,11 +569,11 @@ export function TasksView() {
           </div>
 
           {newTask.parentTaskId && (
-            <div className="flex items-center gap-2 text-xs text-[#737373] bg-[#fafafa] rounded-lg px-4 py-3 border border-[#e5e5e5]">
+            <div className="flex items-center gap-2 text-xs text-[var(--md-text-secondary)] bg-[var(--md-bg-alt)] rounded-lg px-4 py-3 border border-[var(--md-border)]">
               <PlusCircle className="w-3.5 h-3.5" />
               <span>
                 Subtask of:{" "}
-                <span className="text-[#404040] font-medium">
+                <span className="text-[var(--md-text-body)] font-medium">
                   {tasks?.find((t) => t.id === newTask.parentTaskId)
                     ?.fields.Name || "Unknown"}
                 </span>
@@ -582,7 +582,7 @@ export function TasksView() {
                 onClick={() =>
                   setNewTask({ ...newTask, parentTaskId: "" })
                 }
-                className="ml-auto text-[#a3a3a3] hover:text-[#525252] transition-colors duration-200"
+                className="ml-auto text-[var(--md-text-tertiary)] hover:text-[var(--md-text-body)] transition-colors duration-200"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -600,7 +600,7 @@ export function TasksView() {
           {/* Parsed result or manual form */}
           <div className="space-y-3">
             {parsedTask && (
-              <div className="flex items-center gap-2 text-xs text-violet-600 bg-[#f5f3ff] rounded-lg px-4 py-3 border border-violet-100">
+              <div className="flex items-center gap-2 text-xs text-violet-600 bg-[var(--md-highlight)] rounded-lg px-4 py-3 border border-violet-100">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>AI-parsed from your voice input — edit as needed</span>
               </div>
@@ -617,16 +617,16 @@ export function TasksView() {
             />
 
             {parsedTask?.subtasks?.length > 0 && (
-              <div className="bg-[#fafafa] rounded-lg px-4 py-3 border border-[#e5e5e5]">
-                <p className="text-xs font-medium text-[#737373] mb-2">
+              <div className="bg-[var(--md-bg-alt)] rounded-lg px-4 py-3 border border-[var(--md-border)]">
+                <p className="text-xs font-medium text-[var(--md-text-secondary)] mb-2">
                   Subtasks to create:
                 </p>
                 {parsedTask.subtasks.map((sub: string, i: number) => (
                   <div
                     key={i}
-                    className="flex items-center gap-2 text-sm text-[#404040] py-1"
+                    className="flex items-center gap-2 text-sm text-[var(--md-text-body)] py-1"
                   >
-                    <Square className="w-3.5 h-3.5 text-[#a3a3a3]" />
+                    <Square className="w-3.5 h-3.5 text-[var(--md-text-tertiary)]" />
                     {sub}
                   </div>
                 ))}
@@ -639,7 +639,7 @@ export function TasksView() {
               onChange={(e) =>
                 setNewTask({ ...newTask, description: e.target.value })
               }
-              className="bg-white border-[#e5e5e5] text-[#404040]"
+              className="bg-[var(--md-bg)] border-[var(--md-border)] text-[var(--md-text-body)]"
               rows={2}
             />
             <div className="grid grid-cols-2 gap-4">
@@ -649,10 +649,10 @@ export function TasksView() {
                   v && setNewTask({ ...newTask, priority: v })
                 }
               >
-                <SelectTrigger className="bg-white border-[#e5e5e5] text-[#525252]">
+                <SelectTrigger className="bg-[var(--md-bg)] border-[var(--md-border)] text-[var(--md-text-body)]">
                   <SelectValue placeholder="Priority" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-[#e5e5e5]">
+                <SelectContent className="bg-[var(--md-bg)] border-[var(--md-border)]">
                   <SelectItem value="low">Low</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
                   <SelectItem value="high">High</SelectItem>
@@ -712,7 +712,7 @@ export function TasksView() {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#0a0a0a] text-white text-sm font-medium px-6 py-3 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[var(--md-text-primary)] text-white text-sm font-medium px-6 py-3 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
           {toast}
         </div>
       )}
@@ -746,16 +746,16 @@ function VoiceRecorderUI({
         className={cn(
           "w-20 h-20 rounded-full flex items-center justify-center transition-all duration-200 ease-in-out shadow-[0_4px_12px_rgba(0,0,0,0.1)]",
           voice.isRecording
-            ? "bg-[#ef4444] hover:bg-red-600 animate-pulse"
+            ? "bg-[var(--md-error)] hover:bg-red-600 animate-pulse"
             : isParsing || voice.isTranscribing
-              ? "bg-[#e5e5e5] cursor-not-allowed"
-              : "bg-[#ef4444] hover:bg-red-600"
+              ? "bg-[var(--md-border)] cursor-not-allowed"
+              : "bg-[var(--md-error)] hover:bg-red-600"
         )}
       >
         {voice.isRecording ? (
           <MicOff className="w-8 h-8 text-white" />
         ) : isParsing || voice.isTranscribing ? (
-          <Loader2 className="w-8 h-8 text-[#a3a3a3] animate-spin" />
+          <Loader2 className="w-8 h-8 text-[var(--md-text-tertiary)] animate-spin" />
         ) : (
           <Mic className="w-8 h-8 text-white" />
         )}
@@ -765,19 +765,19 @@ function VoiceRecorderUI({
       <div className="text-center">
         {voice.isRecording ? (
           <>
-            <p className="text-sm font-medium text-[#ef4444]">Recording...</p>
-            <p className="text-xs text-[#737373] tabular-nums mt-1">
+            <p className="text-sm font-medium text-[var(--md-error)]">Recording...</p>
+            <p className="text-xs text-[var(--md-text-secondary)] tabular-nums mt-1">
               {formatTime(voice.duration)}
             </p>
           </>
         ) : voice.isTranscribing ? (
-          <p className="text-sm text-[#737373]">Transcribing...</p>
+          <p className="text-sm text-[var(--md-text-secondary)]">Transcribing...</p>
         ) : isParsing ? (
           <p className="text-sm text-violet-600 flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5" /> Parsing with AI...
           </p>
         ) : (
-          <p className="text-sm text-[#a3a3a3]">
+          <p className="text-sm text-[var(--md-text-tertiary)]">
             Tap to record your task
           </p>
         )}
@@ -785,11 +785,11 @@ function VoiceRecorderUI({
 
       {/* Transcript preview */}
       {voice.transcript && (
-        <div className="w-full bg-[#fafafa] rounded-lg border border-[#e5e5e5] p-4">
-          <p className="text-xs font-medium text-[#737373] mb-1">
+        <div className="w-full bg-[var(--md-bg-alt)] rounded-lg border border-[var(--md-border)] p-4">
+          <p className="text-xs font-medium text-[var(--md-text-secondary)] mb-1">
             Transcript:
           </p>
-          <p className="text-sm text-[#404040]">{voice.transcript}</p>
+          <p className="text-sm text-[var(--md-text-body)]">{voice.transcript}</p>
         </div>
       )}
 
@@ -839,18 +839,18 @@ function ProjectGroup({
     <div className="mb-6">
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center gap-2 px-3 py-2.5 w-full text-left group transition-colors duration-200 ease-in-out rounded-lg hover:bg-[#fafafa]"
+        className="flex items-center gap-2 px-3 py-2.5 w-full text-left group transition-colors duration-200 ease-in-out rounded-lg hover:bg-[var(--md-bg-alt)]"
       >
         {collapsed ? (
-          <ChevronRight className="w-4 h-4 text-[#a3a3a3]" />
+          <ChevronRight className="w-4 h-4 text-[var(--md-text-tertiary)]" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-[#a3a3a3]" />
+          <ChevronDown className="w-4 h-4 text-[var(--md-text-tertiary)]" />
         )}
         <FolderOpen className="w-4 h-4 text-violet-500" />
-        <span className="text-sm font-semibold text-[#404040]">
+        <span className="text-sm font-semibold text-[var(--md-text-body)]">
           {project || "Standalone Tasks"}
         </span>
-        <span className="text-xs text-[#a3a3a3] ml-1">
+        <span className="text-xs text-[var(--md-text-tertiary)] ml-1">
           {doneTasks}/{tasks.length}
         </span>
       </button>
@@ -937,10 +937,10 @@ function TaskRow({
     <>
       <div
         className={cn(
-          "flex items-center gap-2 px-6 py-4 group transition-all duration-200 ease-in-out cursor-default min-h-[56px] border-b border-[#f5f5f5]",
+          "flex items-center gap-2 px-6 py-4 group transition-all duration-200 ease-in-out cursor-default min-h-[56px] border-b border-[var(--md-border-light)]",
           isSelected
-            ? "bg-[#f5f3ff]"
-            : "hover:bg-[#fafafa]",
+            ? "bg-[var(--md-highlight)]"
+            : "hover:bg-[var(--md-bg-alt)]",
           isDone && "opacity-50"
         )}
         style={{ paddingLeft: `${24 + indentPx}px` }}
@@ -958,7 +958,7 @@ function TaskRow({
                 e.stopPropagation();
                 onToggleExpand(node.id);
               }}
-              className="text-[#a3a3a3] hover:text-[#525252] transition-colors duration-200"
+              className="text-[var(--md-text-tertiary)] hover:text-[var(--md-text-body)] transition-colors duration-200"
             >
               {isExpanded ? (
                 <ChevronDown className="w-4 h-4" />
@@ -980,8 +980,8 @@ function TaskRow({
           className={cn(
             "w-5 h-5 flex items-center justify-center shrink-0 rounded transition-colors duration-200",
             isDone
-              ? "text-[#22c55e] hover:text-emerald-600"
-              : "text-[#d4d4d4] hover:text-[#737373]"
+              ? "text-[var(--md-success)] hover:text-emerald-600"
+              : "text-[var(--md-text-disabled)] hover:text-[var(--md-text-secondary)]"
           )}
         >
           {isDone ? (
@@ -1005,7 +1005,7 @@ function TaskRow({
                 setEditing(false);
               }
             }}
-            className="flex-1 bg-transparent border-b-2 border-violet-500 text-base text-[#404040] outline-none px-1 py-0 font-medium"
+            className="flex-1 bg-transparent border-b-2 border-violet-500 text-base text-[var(--md-text-body)] outline-none px-1 py-0 font-medium"
           />
         ) : (
           <span
@@ -1015,7 +1015,7 @@ function TaskRow({
             }}
             className={cn(
               "flex-1 text-base font-medium cursor-text select-none truncate",
-              isDone ? "line-through text-[#a3a3a3]" : "text-[#404040]"
+              isDone ? "line-through text-[var(--md-text-tertiary)]" : "text-[var(--md-text-body)]"
             )}
           >
             {node.fields.Name}
@@ -1024,7 +1024,7 @@ function TaskRow({
 
         {/* Completion */}
         {completion !== null && !isDone && (
-          <span className="text-xs text-[#a3a3a3] tabular-nums shrink-0">
+          <span className="text-xs text-[var(--md-text-tertiary)] tabular-nums shrink-0">
             {completion}%
           </span>
         )}
@@ -1051,7 +1051,7 @@ function TaskRow({
                 e.stopPropagation();
                 onAddSubtask(node.id);
               }}
-              className="p-1.5 text-[#d4d4d4] hover:text-violet-500 transition-colors duration-200 rounded-md hover:bg-[#f5f5f5] min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="p-1.5 text-[var(--md-text-disabled)] hover:text-violet-500 transition-colors duration-200 rounded-md hover:bg-[var(--md-surface)] min-w-[44px] min-h-[44px] flex items-center justify-center"
               title="Add subtask"
             >
               <PlusCircle className="w-4 h-4" />
@@ -1062,7 +1062,7 @@ function TaskRow({
               e.stopPropagation();
               onDelete(node.id);
             }}
-            className="p-1.5 text-[#d4d4d4] hover:text-[#ef4444] transition-colors duration-200 rounded-md hover:bg-[#f5f5f5] min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="p-1.5 text-[var(--md-text-disabled)] hover:text-[var(--md-error)] transition-colors duration-200 rounded-md hover:bg-[var(--md-surface)] min-w-[44px] min-h-[44px] flex items-center justify-center"
             title="Delete"
           >
             <Trash2 className="w-4 h-4" />
@@ -1101,10 +1101,10 @@ function DueDateBadge({ dateStr }: { dateStr: string }) {
       className={cn(
         "flex items-center gap-1.5 text-xs shrink-0 tabular-nums",
         overdue
-          ? "text-[#ef4444]"
+          ? "text-[var(--md-error)]"
           : soon
-            ? "text-[#f59e0b]"
-            : "text-[#a3a3a3]"
+            ? "text-[var(--md-warning)]"
+            : "text-[var(--md-text-tertiary)]"
       )}
     >
       <Calendar className="w-3 h-3" />
@@ -1134,25 +1134,25 @@ function ContextMenu({
 }) {
   return (
     <div
-      className="fixed z-50 bg-white rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] py-2 w-48 text-sm"
+      className="fixed z-50 bg-[var(--md-bg)] rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] py-2 w-48 text-sm"
       style={{ left: x, top: y }}
       onClick={(e) => e.stopPropagation()}
     >
       <button
         onClick={onAddSubtask}
-        className="flex items-center gap-2 w-full px-4 py-2.5 text-[#404040] hover:bg-[#fafafa] transition-colors duration-200 text-left"
+        className="flex items-center gap-2 w-full px-4 py-2.5 text-[var(--md-text-body)] hover:bg-[var(--md-bg-alt)] transition-colors duration-200 text-left"
       >
         <PlusCircle className="w-3.5 h-3.5" /> Add subtask
       </button>
-      <div className="border-t border-[#f5f5f5] my-1" />
-      <div className="px-4 py-1.5 text-xs text-[#a3a3a3] font-medium">
+      <div className="border-t border-[var(--md-border-light)] my-1" />
+      <div className="px-4 py-1.5 text-xs text-[var(--md-text-tertiary)] font-medium">
         Priority
       </div>
       {["urgent", "high", "medium", "low"].map((p) => (
         <button
           key={p}
           onClick={() => onChangePriority(p)}
-          className="flex items-center gap-2 w-full px-4 py-2 text-[#404040] hover:bg-[#fafafa] transition-colors duration-200 text-left"
+          className="flex items-center gap-2 w-full px-4 py-2 text-[var(--md-text-body)] hover:bg-[var(--md-bg-alt)] transition-colors duration-200 text-left"
         >
           <div
             className={cn("w-2 h-2 rounded-full", PRIORITY_DOT[p])}
@@ -1160,23 +1160,23 @@ function ContextMenu({
           <span className="capitalize">{p}</span>
         </button>
       ))}
-      <div className="border-t border-[#f5f5f5] my-1" />
-      <div className="px-4 py-1.5 text-xs text-[#a3a3a3] font-medium">
+      <div className="border-t border-[var(--md-border-light)] my-1" />
+      <div className="px-4 py-1.5 text-xs text-[var(--md-text-tertiary)] font-medium">
         Status
       </div>
       {["todo", "in_progress", "done", "backlog"].map((s) => (
         <button
           key={s}
           onClick={() => onChangeStatus(s)}
-          className="flex items-center gap-2 w-full px-4 py-2 text-[#404040] hover:bg-[#fafafa] transition-colors duration-200 text-left"
+          className="flex items-center gap-2 w-full px-4 py-2 text-[var(--md-text-body)] hover:bg-[var(--md-bg-alt)] transition-colors duration-200 text-left"
         >
           {STATUS_LABELS[s]}
         </button>
       ))}
-      <div className="border-t border-[#f5f5f5] my-1" />
+      <div className="border-t border-[var(--md-border-light)] my-1" />
       <button
         onClick={onDelete}
-        className="flex items-center gap-2 w-full px-4 py-2.5 text-[#ef4444] hover:bg-red-50 transition-colors duration-200 text-left"
+        className="flex items-center gap-2 w-full px-4 py-2.5 text-[var(--md-error)] hover:bg-red-50 transition-colors duration-200 text-left"
       >
         <Trash2 className="w-3.5 h-3.5" /> Delete
       </button>
@@ -1187,14 +1187,14 @@ function ContextMenu({
 // ============ KANBAN VIEW ============
 
 const KANBAN_COLUMNS = [
-  { id: "backlog" as const, label: "Backlog", color: "text-[#a3a3a3]" },
-  { id: "todo" as const, label: "To Do", color: "text-[#3b82f6]" },
+  { id: "backlog" as const, label: "Backlog", color: "text-[var(--md-text-tertiary)]" },
+  { id: "todo" as const, label: "To Do", color: "text-[var(--md-info)]" },
   {
     id: "in_progress" as const,
     label: "In Progress",
-    color: "text-[#f59e0b]",
+    color: "text-[var(--md-warning)]",
   },
-  { id: "done" as const, label: "Done", color: "text-[#22c55e]" },
+  { id: "done" as const, label: "Done", color: "text-[var(--md-success)]" },
 ];
 
 function KanbanView({
@@ -1239,10 +1239,10 @@ function KanbanView({
               return (
                 <div
                   key={task.id}
-                  className="p-4 rounded-xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_4px_rgba(0,0,0,0.04)] group hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-all duration-200 ease-in-out"
+                  className="p-4 rounded-xl bg-[var(--md-bg)] shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_4px_rgba(0,0,0,0.04)] group hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-all duration-200 ease-in-out"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-medium text-[#404040] leading-snug">
+                    <p className="text-sm font-medium text-[var(--md-text-body)] leading-snug">
                       {task.fields.Name}
                     </p>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0">
@@ -1254,7 +1254,7 @@ function KanbanView({
                               advanceOrder[currentIdx + 1]
                             )
                           }
-                          className="p-1.5 text-[#d4d4d4] hover:text-violet-500 transition-colors duration-200"
+                          className="p-1.5 text-[var(--md-text-disabled)] hover:text-violet-500 transition-colors duration-200"
                           title="Advance"
                         >
                           <ChevronRight className="w-3.5 h-3.5" />
@@ -1262,7 +1262,7 @@ function KanbanView({
                       )}
                       <button
                         onClick={() => onDelete(task.id)}
-                        className="p-1.5 text-[#d4d4d4] hover:text-[#ef4444] transition-colors duration-200"
+                        className="p-1.5 text-[var(--md-text-disabled)] hover:text-[var(--md-error)] transition-colors duration-200"
                         title="Delete"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -1270,7 +1270,7 @@ function KanbanView({
                     </div>
                   </div>
                   {task.fields.Description && (
-                    <p className="text-xs text-[#a3a3a3] mt-1.5 line-clamp-2">
+                    <p className="text-xs text-[var(--md-text-tertiary)] mt-1.5 line-clamp-2">
                       {task.fields.Description}
                     </p>
                   )}
@@ -1287,7 +1287,7 @@ function KanbanView({
                     {task.fields.Project && (
                       <Badge
                         variant="outline"
-                        className="text-xs bg-[#f5f3ff] text-violet-600 border-violet-100"
+                        className="text-xs bg-[var(--md-highlight)] text-violet-600 border-violet-100"
                       >
                         {task.fields.Project}
                       </Badge>

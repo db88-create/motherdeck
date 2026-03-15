@@ -39,16 +39,16 @@ export function CommandCenter() {
 
   return (
     <div className="space-y-6 max-w-5xl">
-      <h1 className="text-2xl font-semibold text-[#0a0a0a]">Command Center</h1>
+      <h1 className="text-2xl font-semibold text-[var(--md-text-primary)]">Command Center</h1>
 
       {/* Top cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-white">
+        <Card className="bg-[var(--md-bg)]">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Server className="w-4 h-4 text-[#a3a3a3]" />
-                <span className="text-sm text-[#737373]">Gateway</span>
+                <Server className="w-4 h-4 text-[var(--md-text-tertiary)]" />
+                <span className="text-sm text-[var(--md-text-secondary)]">Gateway</span>
               </div>
               <Badge
                 variant={gw?.Status === "online" ? "default" : "destructive"}
@@ -63,10 +63,10 @@ export function CommandCenter() {
             </div>
             {gw && (
               <div className="mt-3 space-y-1">
-                <p className="text-xs text-[#a3a3a3]">
+                <p className="text-xs text-[var(--md-text-tertiary)]">
                   Uptime: {gw.Uptime}
                 </p>
-                <p className="text-xs text-[#a3a3a3]">
+                <p className="text-xs text-[var(--md-text-tertiary)]">
                   Memory: {gw.MemoryMB} MB
                 </p>
               </div>
@@ -74,41 +74,41 @@ export function CommandCenter() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white">
+        <Card className="bg-[var(--md-bg)]">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="w-4 h-4 text-[#a3a3a3]" />
-              <span className="text-sm text-[#737373]">Today&apos;s Spend</span>
+              <DollarSign className="w-4 h-4 text-[var(--md-text-tertiary)]" />
+              <span className="text-sm text-[var(--md-text-secondary)]">Today&apos;s Spend</span>
             </div>
-            <p className="text-2xl font-semibold text-[#0a0a0a]">
+            <p className="text-2xl font-semibold text-[var(--md-text-primary)]">
               ${data.todaySpend.toFixed(2)}
             </p>
             <Progress value={spendPct} className="mt-2 h-2" />
-            <p className="text-xs text-[#a3a3a3] mt-1">
+            <p className="text-xs text-[var(--md-text-tertiary)] mt-1">
               ${data.dailyBudget.toFixed(2)} daily budget
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white">
+        <Card className="bg-[var(--md-bg)]">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 mb-2">
-              <Cpu className="w-4 h-4 text-[#a3a3a3]" />
-              <span className="text-sm text-[#737373]">Active Sessions</span>
+              <Cpu className="w-4 h-4 text-[var(--md-text-tertiary)]" />
+              <span className="text-sm text-[var(--md-text-secondary)]">Active Sessions</span>
             </div>
-            <p className="text-2xl font-semibold text-[#0a0a0a]">
+            <p className="text-2xl font-semibold text-[var(--md-text-primary)]">
               {data.sessions.length}
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white">
+        <Card className="bg-[var(--md-bg)]">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="w-4 h-4 text-[#a3a3a3]" />
-              <span className="text-sm text-[#737373]">Active Alerts</span>
+              <AlertTriangle className="w-4 h-4 text-[var(--md-text-tertiary)]" />
+              <span className="text-sm text-[var(--md-text-secondary)]">Active Alerts</span>
             </div>
-            <p className="text-2xl font-semibold text-[#0a0a0a]">
+            <p className="text-2xl font-semibold text-[var(--md-text-primary)]">
               {data.alerts.length}
             </p>
           </CardContent>
@@ -117,9 +117,9 @@ export function CommandCenter() {
 
       {/* Sessions */}
       {data.sessions.length > 0 && (
-        <Card className="bg-white">
+        <Card className="bg-[var(--md-bg)]">
           <CardHeader>
-            <CardTitle className="text-[#0a0a0a] text-lg flex items-center gap-2">
+            <CardTitle className="text-[var(--md-text-primary)] text-lg flex items-center gap-2">
               <Activity className="w-5 h-5" /> Active Sessions
             </CardTitle>
           </CardHeader>
@@ -127,24 +127,24 @@ export function CommandCenter() {
             {data.sessions.map((s) => (
               <div
                 key={s.id}
-                className="flex items-center justify-between p-3 rounded-lg bg-[#fafafa] border border-[#e5e5e5]"
+                className="flex items-center justify-between p-3 rounded-lg bg-[var(--md-bg-alt)] border border-[var(--md-border)]"
               >
                 <div>
-                  <p className="text-sm font-medium text-[#404040]">
+                  <p className="text-sm font-medium text-[var(--md-text-body)]">
                     {s.fields.Name}
                   </p>
-                  <p className="text-xs text-[#a3a3a3]">
+                  <p className="text-xs text-[var(--md-text-tertiary)]">
                     {s.fields.Type} &middot; {s.fields.Model}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="w-24">
                     <Progress value={s.fields.ContextPct} className="h-2" />
-                    <p className="text-xs text-[#a3a3a3] mt-0.5 text-right">
+                    <p className="text-xs text-[var(--md-text-tertiary)] mt-0.5 text-right">
                       {s.fields.ContextPct}% ctx
                     </p>
                   </div>
-                  <p className="text-xs text-[#737373] tabular-nums">
+                  <p className="text-xs text-[var(--md-text-secondary)] tabular-nums">
                     ${s.fields.Cost?.toFixed(4)}
                   </p>
                 </div>
@@ -155,9 +155,9 @@ export function CommandCenter() {
       )}
 
       {/* Cron Jobs */}
-      <Card className="bg-white">
+      <Card className="bg-[var(--md-bg)]">
         <CardHeader>
-          <CardTitle className="text-[#0a0a0a] text-lg flex items-center gap-2">
+          <CardTitle className="text-[var(--md-text-primary)] text-lg flex items-center gap-2">
             <Clock className="w-5 h-5" /> Cron Jobs
           </CardTitle>
         </CardHeader>
@@ -166,23 +166,23 @@ export function CommandCenter() {
             {data.cronJobs.map((job) => (
               <div
                 key={job.id}
-                className="p-3 rounded-lg bg-[#fafafa] border border-[#e5e5e5]"
+                className="p-3 rounded-lg bg-[var(--md-bg-alt)] border border-[var(--md-border)]"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-[#404040] truncate">
+                  <p className="text-sm font-medium text-[var(--md-text-body)] truncate">
                     {job.fields.Name}
                   </p>
                   {job.fields.LastResult === "success" ? (
-                    <CheckCircle className="w-4 h-4 text-[#22c55e] shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-[var(--md-success)] shrink-0" />
                   ) : job.fields.LastResult === "error" ? (
-                    <XCircle className="w-4 h-4 text-[#ef4444] shrink-0" />
+                    <XCircle className="w-4 h-4 text-[var(--md-error)] shrink-0" />
                   ) : null}
                 </div>
-                <p className="text-xs text-[#a3a3a3] font-mono">
+                <p className="text-xs text-[var(--md-text-tertiary)] font-mono">
                   {job.fields.Schedule}
                 </p>
                 {job.fields.LastRun && (
-                  <p className="text-xs text-[#a3a3a3] mt-1">
+                  <p className="text-xs text-[var(--md-text-tertiary)] mt-1">
                     Last: {new Date(job.fields.LastRun).toLocaleString()}
                   </p>
                 )}
@@ -199,9 +199,9 @@ export function CommandCenter() {
 
       {/* Alerts */}
       {data.alerts.length > 0 && (
-        <Card className="bg-white">
+        <Card className="bg-[var(--md-bg)]">
           <CardHeader>
-            <CardTitle className="text-[#0a0a0a] text-lg flex items-center gap-2">
+            <CardTitle className="text-[var(--md-text-primary)] text-lg flex items-center gap-2">
               <AlertTriangle className="w-5 h-5" /> Alerts
             </CardTitle>
           </CardHeader>
@@ -217,10 +217,10 @@ export function CommandCenter() {
                     : "bg-blue-50 border-blue-200"
                 }`}
               >
-                <p className="text-sm font-medium text-[#404040]">
+                <p className="text-sm font-medium text-[var(--md-text-body)]">
                   {alert.fields.Title}
                 </p>
-                <p className="text-xs text-[#737373] mt-1">
+                <p className="text-xs text-[var(--md-text-secondary)] mt-1">
                   {alert.fields.Message}
                 </p>
               </div>
@@ -235,16 +235,16 @@ export function CommandCenter() {
 function LoadingSkeleton() {
   return (
     <div className="space-y-6 max-w-5xl">
-      <div className="h-8 w-48 bg-[#f5f5f5] rounded animate-pulse" />
+      <div className="h-8 w-48 bg-[var(--md-surface)] rounded animate-pulse" />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
           <div
             key={i}
-            className="h-28 bg-[#fafafa] border border-[#e5e5e5] rounded-xl animate-pulse"
+            className="h-28 bg-[var(--md-bg-alt)] border border-[var(--md-border)] rounded-xl animate-pulse"
           />
         ))}
       </div>
-      <div className="h-48 bg-[#fafafa] border border-[#e5e5e5] rounded-xl animate-pulse" />
+      <div className="h-48 bg-[var(--md-bg-alt)] border border-[var(--md-border)] rounded-xl animate-pulse" />
     </div>
   );
 }
@@ -253,11 +253,11 @@ function EmptyState() {
   return (
     <div className="flex items-center justify-center h-64">
       <div className="text-center">
-        <Server className="w-12 h-12 text-[#d4d4d4] mx-auto mb-3" />
-        <p className="text-[#737373]">
+        <Server className="w-12 h-12 text-[var(--md-text-disabled)] mx-auto mb-3" />
+        <p className="text-[var(--md-text-secondary)]">
           Connect Airtable to see your command center
         </p>
-        <p className="text-xs text-[#a3a3a3] mt-1">
+        <p className="text-xs text-[var(--md-text-tertiary)] mt-1">
           Add AIRTABLE_PAT and AIRTABLE_BASE_ID to .env.local
         </p>
       </div>

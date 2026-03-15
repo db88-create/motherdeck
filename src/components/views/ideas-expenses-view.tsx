@@ -30,24 +30,24 @@ const IDEA_STATUS_COLORS: Record<string, string> = {
   exploring: "bg-amber-50 text-amber-600 border-amber-100",
   planned: "bg-violet-50 text-violet-600 border-violet-100",
   implemented: "bg-emerald-50 text-emerald-600 border-emerald-100",
-  parked: "bg-[#fafafa] text-[#737373] border-[#e5e5e5]",
+  parked: "bg-[var(--md-bg-alt)] text-[var(--md-text-secondary)] border-[var(--md-border)]",
 };
 
 export function IdeasExpensesView() {
   return (
     <div className="space-y-5 max-w-4xl">
-      <h1 className="text-2xl font-semibold text-[#0a0a0a]">Ideas & Expenses</h1>
+      <h1 className="text-2xl font-semibold text-[var(--md-text-primary)]">Ideas & Expenses</h1>
       <Tabs defaultValue="ideas">
-        <TabsList className="bg-[#f5f5f5] border border-[#e5e5e5]">
+        <TabsList className="bg-[var(--md-surface)] border border-[var(--md-border)]">
           <TabsTrigger
             value="ideas"
-            className="data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            className="data-[state=active]:bg-[var(--md-bg)] data-[state=active]:shadow-sm"
           >
             <Lightbulb className="w-4 h-4 mr-1.5" /> Ideas
           </TabsTrigger>
           <TabsTrigger
             value="expenses"
-            className="data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            className="data-[state=active]:bg-[var(--md-bg)] data-[state=active]:shadow-sm"
           >
             <Receipt className="w-4 h-4 mr-1.5" /> Expenses
           </TabsTrigger>
@@ -105,7 +105,7 @@ function IdeasTab() {
     return (
       <div className="space-y-3 mt-4">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-20 bg-[#fafafa] rounded-xl animate-pulse" />
+          <div key={i} className="h-20 bg-[var(--md-bg-alt)] rounded-xl animate-pulse" />
         ))}
       </div>
     );
@@ -118,9 +118,9 @@ function IdeasTab() {
           <DialogTrigger className="inline-flex items-center justify-center gap-1 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 transition-colors shadow-sm">
             <Plus className="w-4 h-4" /> Add Idea
           </DialogTrigger>
-          <DialogContent className="bg-white border-[#e5e5e5] shadow-[0_1px_3px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)]">
+          <DialogContent className="bg-[var(--md-bg)] border-[var(--md-border)] shadow-[0_1px_3px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)]">
             <DialogHeader>
-              <DialogTitle className="text-[#0a0a0a]">Capture Idea</DialogTitle>
+              <DialogTitle className="text-[var(--md-text-primary)]">Capture Idea</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <Input
@@ -129,7 +129,7 @@ function IdeasTab() {
                 onChange={(e) =>
                   setNewIdea({ ...newIdea, title: e.target.value })
                 }
-                className="bg-white border-[#e5e5e5] text-[#0a0a0a]"
+                className="bg-[var(--md-bg)] border-[var(--md-border)] text-[var(--md-text-primary)]"
               />
               <Textarea
                 placeholder="Description"
@@ -137,7 +137,7 @@ function IdeasTab() {
                 onChange={(e) =>
                   setNewIdea({ ...newIdea, description: e.target.value })
                 }
-                className="bg-white border-[#e5e5e5] text-[#0a0a0a]"
+                className="bg-[var(--md-bg)] border-[var(--md-border)] text-[var(--md-text-primary)]"
               />
               <div className="grid grid-cols-3 gap-3">
                 <Select
@@ -146,10 +146,10 @@ function IdeasTab() {
                     v && setNewIdea({ ...newIdea, priority: v })
                   }
                 >
-                  <SelectTrigger className="bg-white border-[#e5e5e5] text-[#404040]">
+                  <SelectTrigger className="bg-[var(--md-bg)] border-[var(--md-border)] text-[var(--md-text-body)]">
                     <SelectValue placeholder="Priority" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-[#e5e5e5]">
+                  <SelectContent className="bg-[var(--md-bg)] border-[var(--md-border)]">
                     <SelectItem value="low">Low</SelectItem>
                     <SelectItem value="medium">Medium</SelectItem>
                     <SelectItem value="high">High</SelectItem>
@@ -161,10 +161,10 @@ function IdeasTab() {
                     v && setNewIdea({ ...newIdea, effort: v })
                   }
                 >
-                  <SelectTrigger className="bg-white border-[#e5e5e5] text-[#404040]">
+                  <SelectTrigger className="bg-[var(--md-bg)] border-[var(--md-border)] text-[var(--md-text-body)]">
                     <SelectValue placeholder="Effort" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-[#e5e5e5]">
+                  <SelectContent className="bg-[var(--md-bg)] border-[var(--md-border)]">
                     <SelectItem value="small">Small</SelectItem>
                     <SelectItem value="medium">Medium</SelectItem>
                     <SelectItem value="large">Large</SelectItem>
@@ -176,10 +176,10 @@ function IdeasTab() {
                     v && setNewIdea({ ...newIdea, impact: v })
                   }
                 >
-                  <SelectTrigger className="bg-white border-[#e5e5e5] text-[#404040]">
+                  <SelectTrigger className="bg-[var(--md-bg)] border-[var(--md-border)] text-[var(--md-text-body)]">
                     <SelectValue placeholder="Impact" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-[#e5e5e5]">
+                  <SelectContent className="bg-[var(--md-bg)] border-[var(--md-border)]">
                     <SelectItem value="low">Low</SelectItem>
                     <SelectItem value="medium">Medium</SelectItem>
                     <SelectItem value="high">High</SelectItem>
@@ -192,7 +192,7 @@ function IdeasTab() {
                 onChange={(e) =>
                   setNewIdea({ ...newIdea, project: e.target.value })
                 }
-                className="bg-white border-[#e5e5e5] text-[#0a0a0a]"
+                className="bg-[var(--md-bg)] border-[var(--md-border)] text-[var(--md-text-primary)]"
               />
               <Button
                 onClick={handleCreate}
@@ -207,8 +207,8 @@ function IdeasTab() {
       </div>
 
       {(ideas || []).length === 0 ? (
-        <div className="text-center py-12 text-[#a3a3a3]">
-          <Lightbulb className="w-10 h-10 mx-auto mb-3 text-[#d4d4d4]" />
+        <div className="text-center py-12 text-[var(--md-text-tertiary)]">
+          <Lightbulb className="w-10 h-10 mx-auto mb-3 text-[var(--md-text-disabled)]" />
           <p>No ideas captured yet</p>
         </div>
       ) : (
@@ -216,16 +216,16 @@ function IdeasTab() {
           {(ideas || []).map((idea) => (
             <Card
               key={idea.id}
-              className="hover:border-[#d4d4d4] transition-all"
+              className="hover:border-[var(--md-border)] transition-all"
             >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#404040]">
+                    <p className="text-sm font-medium text-[var(--md-text-body)]">
                       {idea.fields.Title}
                     </p>
                     {idea.fields.Description && (
-                      <p className="text-xs text-[#a3a3a3] mt-1 line-clamp-2">
+                      <p className="text-xs text-[var(--md-text-tertiary)] mt-1 line-clamp-2">
                         {idea.fields.Description}
                       </p>
                     )}
@@ -236,10 +236,10 @@ function IdeasTab() {
                           v && handleStatusChange(idea.id, v)
                         }
                       >
-                        <SelectTrigger className="h-6 text-xs bg-transparent border-[#e5e5e5] text-[#525252] w-28">
+                        <SelectTrigger className="h-6 text-xs bg-transparent border-[var(--md-border)] text-[var(--md-text-body)] w-28">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-white border-[#e5e5e5]">
+                        <SelectContent className="bg-[var(--md-bg)] border-[var(--md-border)]">
                           {Object.keys(IDEA_STATUS_COLORS).map((s) => (
                             <SelectItem key={s} value={s}>
                               {s}
@@ -249,13 +249,13 @@ function IdeasTab() {
                       </Select>
                       <Badge
                         variant="outline"
-                        className="text-xs bg-[#fafafa] text-[#737373] border-[#e5e5e5]"
+                        className="text-xs bg-[var(--md-bg-alt)] text-[var(--md-text-secondary)] border-[var(--md-border)]"
                       >
                         {idea.fields.Effort} effort
                       </Badge>
                       <Badge
                         variant="outline"
-                        className="text-xs bg-[#fafafa] text-[#737373] border-[#e5e5e5]"
+                        className="text-xs bg-[var(--md-bg-alt)] text-[var(--md-text-secondary)] border-[var(--md-border)]"
                       >
                         {idea.fields.Impact} impact
                       </Badge>
@@ -271,7 +271,7 @@ function IdeasTab() {
                   </div>
                   <button
                     onClick={() => handleDelete(idea.id)}
-                    className="p-1 text-[#d4d4d4] hover:text-[#ef4444] transition-colors shrink-0"
+                    className="p-1 text-[var(--md-text-disabled)] hover:text-[var(--md-error)] transition-colors shrink-0"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -329,7 +329,7 @@ function ExpensesTab() {
     return (
       <div className="space-y-3 mt-4">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-16 bg-[#fafafa] rounded-xl animate-pulse" />
+          <div key={i} className="h-16 bg-[var(--md-bg-alt)] rounded-xl animate-pulse" />
         ))}
       </div>
     );
@@ -339,8 +339,8 @@ function ExpensesTab() {
     <div className="space-y-4 mt-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-[#737373]">Total Expenses</p>
-          <p className="text-2xl font-semibold text-[#0a0a0a] tabular-nums">
+          <p className="text-sm text-[var(--md-text-secondary)]">Total Expenses</p>
+          <p className="text-2xl font-semibold text-[var(--md-text-primary)] tabular-nums">
             ${totalExpenses.toFixed(2)}
           </p>
         </div>
@@ -348,9 +348,9 @@ function ExpensesTab() {
           <DialogTrigger className="inline-flex items-center justify-center gap-1 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 transition-colors shadow-sm">
             <Plus className="w-4 h-4" /> Add Expense
           </DialogTrigger>
-          <DialogContent className="bg-white border-[#e5e5e5] shadow-[0_1px_3px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)]">
+          <DialogContent className="bg-[var(--md-bg)] border-[var(--md-border)] shadow-[0_1px_3px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)]">
             <DialogHeader>
-              <DialogTitle className="text-[#0a0a0a]">Log Expense</DialogTitle>
+              <DialogTitle className="text-[var(--md-text-primary)]">Log Expense</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <Input
@@ -362,7 +362,7 @@ function ExpensesTab() {
                     description: e.target.value,
                   })
                 }
-                className="bg-white border-[#e5e5e5] text-[#0a0a0a]"
+                className="bg-[var(--md-bg)] border-[var(--md-border)] text-[var(--md-text-primary)]"
               />
               <div className="grid grid-cols-2 gap-3">
                 <Input
@@ -373,7 +373,7 @@ function ExpensesTab() {
                   onChange={(e) =>
                     setNewExpense({ ...newExpense, amount: e.target.value })
                   }
-                  className="bg-white border-[#e5e5e5] text-[#0a0a0a]"
+                  className="bg-[var(--md-bg)] border-[var(--md-border)] text-[var(--md-text-primary)]"
                 />
                 <Select
                   value={newExpense.category}
@@ -381,10 +381,10 @@ function ExpensesTab() {
                     v && setNewExpense({ ...newExpense, category: v })
                   }
                 >
-                  <SelectTrigger className="bg-white border-[#e5e5e5] text-[#404040]">
+                  <SelectTrigger className="bg-[var(--md-bg)] border-[var(--md-border)] text-[var(--md-text-body)]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-[#e5e5e5]">
+                  <SelectContent className="bg-[var(--md-bg)] border-[var(--md-border)]">
                     <SelectItem value="Infrastructure">
                       Infrastructure
                     </SelectItem>
@@ -403,7 +403,7 @@ function ExpensesTab() {
                   onChange={(e) =>
                     setNewExpense({ ...newExpense, vendor: e.target.value })
                   }
-                  className="bg-white border-[#e5e5e5] text-[#0a0a0a]"
+                  className="bg-[var(--md-bg)] border-[var(--md-border)] text-[var(--md-text-primary)]"
                 />
                 <Input
                   type="date"
@@ -411,7 +411,7 @@ function ExpensesTab() {
                   onChange={(e) =>
                     setNewExpense({ ...newExpense, date: e.target.value })
                   }
-                  className="bg-white border-[#e5e5e5] text-[#0a0a0a]"
+                  className="bg-[var(--md-bg)] border-[var(--md-border)] text-[var(--md-text-primary)]"
                 />
               </div>
               <Button
@@ -431,8 +431,8 @@ function ExpensesTab() {
       </div>
 
       {(expenses || []).length === 0 ? (
-        <div className="text-center py-12 text-[#a3a3a3]">
-          <Receipt className="w-10 h-10 mx-auto mb-3 text-[#d4d4d4]" />
+        <div className="text-center py-12 text-[var(--md-text-tertiary)]">
+          <Receipt className="w-10 h-10 mx-auto mb-3 text-[var(--md-text-disabled)]" />
           <p>No expenses logged yet</p>
         </div>
       ) : (
@@ -440,20 +440,20 @@ function ExpensesTab() {
           <CardContent className="p-0">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#e5e5e5]">
-                  <th className="text-left text-xs text-[#737373] font-medium p-3">
+                <tr className="border-b border-[var(--md-border)]">
+                  <th className="text-left text-xs text-[var(--md-text-secondary)] font-medium p-3">
                     Description
                   </th>
-                  <th className="text-left text-xs text-[#737373] font-medium p-3">
+                  <th className="text-left text-xs text-[var(--md-text-secondary)] font-medium p-3">
                     Category
                   </th>
-                  <th className="text-left text-xs text-[#737373] font-medium p-3">
+                  <th className="text-left text-xs text-[var(--md-text-secondary)] font-medium p-3">
                     Vendor
                   </th>
-                  <th className="text-left text-xs text-[#737373] font-medium p-3">
+                  <th className="text-left text-xs text-[var(--md-text-secondary)] font-medium p-3">
                     Date
                   </th>
-                  <th className="text-right text-xs text-[#737373] font-medium p-3">
+                  <th className="text-right text-xs text-[var(--md-text-secondary)] font-medium p-3">
                     Amount
                   </th>
                 </tr>
@@ -462,26 +462,26 @@ function ExpensesTab() {
                 {(expenses || []).map((exp) => (
                   <tr
                     key={exp.id}
-                    className="border-b border-[#f5f5f5] hover:bg-[#fafafa]"
+                    className="border-b border-[var(--md-border-light)] hover:bg-[var(--md-bg-alt)]"
                   >
-                    <td className="p-3 text-sm text-[#404040]">
+                    <td className="p-3 text-sm text-[var(--md-text-body)]">
                       {exp.fields.Description}
                     </td>
                     <td className="p-3">
                       <Badge
                         variant="outline"
-                        className="text-xs bg-[#fafafa] text-[#737373] border-[#e5e5e5]"
+                        className="text-xs bg-[var(--md-bg-alt)] text-[var(--md-text-secondary)] border-[var(--md-border)]"
                       >
                         {exp.fields.Category}
                       </Badge>
                     </td>
-                    <td className="p-3 text-sm text-[#737373]">
+                    <td className="p-3 text-sm text-[var(--md-text-secondary)]">
                       {exp.fields.Vendor || "\u2014"}
                     </td>
-                    <td className="p-3 text-sm text-[#737373]">
+                    <td className="p-3 text-sm text-[var(--md-text-secondary)]">
                       {exp.fields.Date}
                     </td>
-                    <td className="p-3 text-sm text-[#0a0a0a] text-right tabular-nums font-medium">
+                    <td className="p-3 text-sm text-[var(--md-text-primary)] text-right tabular-nums font-medium">
                       ${exp.fields.Amount?.toFixed(2)}
                     </td>
                   </tr>
