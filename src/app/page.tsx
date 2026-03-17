@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Task } from "@/lib/types";
 import {
   Check,
   Trash2,
@@ -12,6 +11,17 @@ import {
   Sun,
   Moon,
 } from "lucide-react";
+
+// ─── Types ───
+interface Todo {
+  id: string;
+  title: string;
+  description: string;
+  priority: string;
+  due_date: string | null;
+  status: string;
+  parent_task_id: string | null;
+}
 
 // ─── Action Notes (static quick-reference items) ───
 const ACTION_NOTES = [
@@ -49,62 +59,25 @@ function Toast({ message, show }: { message: string; show: boolean }) {
 // ─── Task Item ───
 function TaskItem({
   task,
+  subtasks,
   onComplete,
   onDelete,
+  onAddSubtask,
   showDate,
 }: {
-  task: Task;
+  task: Todo;
+  subtasks: Todo[];
   onComplete: (id: string) => void;
   onDelete: (id: string) => void;
+  onAddSubtask: (parentId: string, title: string) => void;
   showDate?: boolean;
 }) {
-  const [subtasks, setSubtasks] = useState<
-    { text: string; done: boolean }[]
-  >([]);
   const [expanded, setExpanded] = useState(false);
   const [newSub, setNewSub] = useState("");
-
-  // Parse checklist from task fields
-  useEffect(() => {
-    if (task.fields.Checklist) {
-      try {
-        setSubtasks(JSON.parse(task.fields.Checklist));
-      } catch {
-        /* ignore */
-      }
-    }
-  }, [task.fields.Checklist]);
-
   const hasSubtasks = subtasks.length > 0;
 
-  async function toggleSubtask(idx: number) {
-    const updated = subtasks.map((s, i) =>
-      i === idx ? { ...s, done: !s.done } : s
-    );
-    setSubtasks(updated);
-    await fetch(`/api/tasks/${task.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ checklist: JSON.stringify(updated) }),
-    });
-  }
-
-  async function addSubtask() {
-    if (!newSub.trim()) return;
-    const updated = [...subtasks, { text: newSub.trim(), done: false }];
-    setSubtasks(updated);
-    setNewSub("");
-    await fetch(`/api/tasks/${task.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ checklist: JSON.stringify(updated) }),
-    });
-  }
-
-  const dueStr = task.fields.DueDate?.split("T")[0];
-
   return (
-    <div className="group">
+    <div className="group/item">
       <div className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-[var(--md-surface)] transition-colors">
         {/* Check-off button */}
         <button
@@ -112,76 +85,83 @@ function TaskItem({
           className="flex-shrink-0 w-5 h-5 rounded-full border-2 border-[var(--md-border)] hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors flex items-center justify-center"
           title="Mark done"
         >
-          <Check className="w-3 h-3 text-transparent group-hover:text-[var(--primary)]" />
+          <Check className="w-3 h-3 text-transparent group-hover/item:text-[var(--primary)]" />
         </button>
 
-        {/* Expand toggle if has subtasks */}
-        {(hasSubtasks || true) && (
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="flex-shrink-0 w-4 h-4 text-[var(--md-text-tertiary)] hover:text-[var(--md-text-secondary)]"
-          >
-            {expanded ? (
-              <ChevronDown className="w-4 h-4" />
-            ) : (
-              <ChevronRight className="w-4 h-4" />
-            )}
-          </button>
-        )}
+        {/* Expand toggle */}
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex-shrink-0 w-4 h-4 text-[var(--md-text-tertiary)] hover:text-[var(--md-text-secondary)]"
+        >
+          {expanded ? (
+            <ChevronDown className="w-4 h-4" />
+          ) : (
+            <ChevronRight className="w-4 h-4" />
+          )}
+        </button>
 
         {/* Task name */}
         <span className="flex-1 text-[var(--md-text-body)] text-sm">
-          {task.fields.Name}
+          {task.title}
         </span>
 
         {/* Priority badge */}
-        <span
-          className={`text-[10px] px-1.5 py-0.5 rounded border font-medium uppercase ${priorityColor(task.fields.Priority)}`}
-        >
-          {task.fields.Priority}
-        </span>
+        {task.priority && (
+          <span
+            className={`text-[10px] px-1.5 py-0.5 rounded border font-medium uppercase ${priorityColor(task.priority)}`}
+          >
+            {task.priority}
+          </span>
+        )}
 
         {/* Due date */}
-        {showDate && dueStr && (
+        {showDate && task.due_date && (
           <span className="text-[11px] text-[var(--md-text-tertiary)] tabular-nums">
-            {dueStr}
+            {task.due_date}
           </span>
         )}
 
         {/* Delete */}
         <button
           onClick={() => onDelete(task.id)}
-          className="flex-shrink-0 opacity-0 group-hover:opacity-100 text-[var(--md-text-tertiary)] hover:text-[var(--md-error)] transition-all"
+          className="flex-shrink-0 opacity-0 group-hover/item:opacity-100 text-[var(--md-text-tertiary)] hover:text-[var(--md-error)] transition-all"
           title="Delete"
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>
       </div>
 
-      {/* Subtasks */}
+      {/* Subtasks + add subtask */}
       {expanded && (
         <div className="ml-12 mb-1">
-          {subtasks.map((sub, idx) => (
-            <div
-              key={idx}
-              className="flex items-center gap-2 py-1 text-sm text-[var(--md-text-secondary)]"
-            >
-              <button
-                onClick={() => toggleSubtask(idx)}
-                className={`w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center transition-colors ${sub.done ? "bg-[var(--md-success)] border-[var(--md-success)]" : "border-[var(--md-border)]"}`}
+          {hasSubtasks &&
+            subtasks.map((sub) => (
+              <div
+                key={sub.id}
+                className="flex items-center gap-2 py-1 text-sm text-[var(--md-text-secondary)] group/sub"
               >
-                {sub.done && <Check className="w-2.5 h-2.5 text-white" />}
-              </button>
-              <span className={sub.done ? "line-through opacity-50" : ""}>
-                {sub.text}
-              </span>
-            </div>
-          ))}
+                <button
+                  onClick={() => onComplete(sub.id)}
+                  className="w-4 h-4 rounded border border-[var(--md-border)] flex-shrink-0 flex items-center justify-center hover:border-[var(--md-success)] transition-colors"
+                >
+                  <Check className="w-2.5 h-2.5 text-transparent group-hover/sub:text-[var(--md-success)]" />
+                </button>
+                <span className="flex-1">{sub.title}</span>
+                <button
+                  onClick={() => onDelete(sub.id)}
+                  className="opacity-0 group-hover/sub:opacity-100 text-[var(--md-text-tertiary)] hover:text-[var(--md-error)] transition-all"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
           {/* Add subtask inline */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              addSubtask();
+              if (!newSub.trim()) return;
+              onAddSubtask(task.id, newSub.trim());
+              setNewSub("");
             }}
             className="flex items-center gap-2 py-1"
           >
@@ -201,24 +181,23 @@ function TaskItem({
 
 // ─── New Task Form ───
 function NewTaskForm({ onCreated }: { onCreated: () => void }) {
-  const [name, setName] = useState("");
+  const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("medium");
   const [dueDate, setDueDate] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!title.trim()) return;
     await fetch("/api/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        name: name.trim(),
+        title: title.trim(),
         priority,
         dueDate: dueDate || undefined,
-        status: "todo",
       }),
     });
-    setName("");
+    setTitle("");
     setPriority("medium");
     setDueDate("");
     onCreated();
@@ -227,8 +206,8 @@ function NewTaskForm({ onCreated }: { onCreated: () => void }) {
   return (
     <form onSubmit={handleSubmit} className="flex items-center gap-2 mt-3">
       <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
         placeholder="Add a new task…"
         className="flex-1 px-3 py-2 rounded-lg bg-[var(--md-surface)] border border-[var(--md-border)] text-sm text-[var(--md-text-body)] placeholder:text-[var(--md-text-tertiary)] outline-none focus:border-[var(--primary)] transition-colors"
       />
@@ -320,8 +299,8 @@ function ThemeToggle() {
 
 // ─── Main Page ───
 export default function Home() {
-  const [todayTasks, setTodayTasks] = useState<Task[]>([]);
-  const [weekTasks, setWeekTasks] = useState<Task[]>([]);
+  const [todayTasks, setTodayTasks] = useState<Todo[]>([]);
+  const [weekTasks, setWeekTasks] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState("");
 
@@ -361,6 +340,24 @@ export default function Home() {
     fetchTasks();
   }
 
+  async function addSubtask(parentId: string, title: string) {
+    await fetch("/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, parentTaskId: parentId }),
+    });
+    fetchTasks();
+  }
+
+  // Group subtasks under parents
+  function getParentTasks(tasks: Todo[]): Todo[] {
+    return tasks.filter((t) => !t.parent_task_id);
+  }
+
+  function getSubtasks(tasks: Todo[], parentId: string): Todo[] {
+    return tasks.filter((t) => t.parent_task_id === parentId);
+  }
+
   return (
     <div className="min-h-dvh bg-[var(--md-bg)]">
       {/* Header */}
@@ -381,18 +378,20 @@ export default function Home() {
             <div className="text-sm text-[var(--md-text-tertiary)] py-4">
               Loading…
             </div>
-          ) : todayTasks.length === 0 ? (
+          ) : getParentTasks(todayTasks).length === 0 ? (
             <div className="text-sm text-[var(--md-text-tertiary)] py-4 italic">
               Nothing on the plate today. Nice.
             </div>
           ) : (
             <div className="space-y-0.5">
-              {todayTasks.map((t) => (
+              {getParentTasks(todayTasks).map((t) => (
                 <TaskItem
                   key={t.id}
                   task={t}
+                  subtasks={getSubtasks(todayTasks, t.id)}
                   onComplete={completeTask}
                   onDelete={deleteTask}
+                  onAddSubtask={addSubtask}
                 />
               ))}
             </div>
@@ -408,18 +407,20 @@ export default function Home() {
             <div className="text-sm text-[var(--md-text-tertiary)] py-4">
               Loading…
             </div>
-          ) : weekTasks.length === 0 ? (
+          ) : getParentTasks(weekTasks).length === 0 ? (
             <div className="text-sm text-[var(--md-text-tertiary)] py-4 italic">
               Week&apos;s clear.
             </div>
           ) : (
             <div className="space-y-0.5">
-              {weekTasks.map((t) => (
+              {getParentTasks(weekTasks).map((t) => (
                 <TaskItem
                   key={t.id}
                   task={t}
+                  subtasks={getSubtasks(weekTasks, t.id)}
                   onComplete={completeTask}
                   onDelete={deleteTask}
+                  onAddSubtask={addSubtask}
                   showDate
                 />
               ))}
