@@ -1,37 +1,37 @@
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
-
-export const dynamic = "force-dynamic";
+import { fetchAll } from "@/lib/airtable";
+import { TaskFields } from "@/lib/types";
 
 export async function GET() {
   try {
-    const db = getDb();
+    const now = new Date();
+    const today = now.toISOString().split("T")[0];
+    const weekEnd = new Date(now.getTime() + 7 * 86400000)
+      .toISOString()
+      .split("T")[0];
 
-    const today = db
-      .prepare(
-        `SELECT id, title, description, priority, due_date, status, parent_task_id
-         FROM todos
-         WHERE status='pending'
-           AND (due_date = DATE('now') OR due_date IS NULL)
-         ORDER BY
-           CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
-           created_at DESC`
-      )
-      .all();
+    // Fetch all pending/todo/in_progress tasks (not done/archived)
+    const allTasks = await fetchAll<TaskFields>("Tasks", {
+      filterByFormula: `AND(OR({Status}='todo', {Status}='in_progress', {Status}='backlog'), {Status} != 'done', {Status} != 'archived')`,
+      sort: [
+        { field: "Priority", direction: "asc" },
+        { field: "CreatedAt", direction: "desc" },
+      ],
+    });
 
-    const week = db
-      .prepare(
-        `SELECT id, title, description, priority, due_date, status, parent_task_id
-         FROM todos
-         WHERE status='pending'
-           AND due_date BETWEEN DATE('now', '+1 day') AND DATE('now', '+7 days')
-         ORDER BY
-           CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
-           due_date ASC`
-      )
-      .all();
+    // Today: due today OR no due date
+    const todayTasks = allTasks.filter((t) => {
+      const d = t.fields.DueDate?.split("T")[0];
+      return !d || d === today;
+    });
 
-    return NextResponse.json({ today, week });
+    // This week: due between tomorrow and 7 days from now
+    const weekTasks = allTasks.filter((t) => {
+      const d = t.fields.DueDate?.split("T")[0];
+      return d && d > today && d <= weekEnd;
+    });
+
+    return NextResponse.json({ today: todayTasks, week: weekTasks });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { updateRecord, deleteRecord } from "@/lib/airtable";
+import { TaskFields } from "@/lib/types";
 
 export async function PATCH(
   req: NextRequest,
@@ -8,47 +9,29 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await req.json();
-    const db = getDb();
 
-    const sets: string[] = [];
-    const values: any[] = [];
-
+    const fields: Partial<TaskFields> = {};
+    if (body.name !== undefined) fields.Name = body.name;
     if (body.status !== undefined) {
-      sets.push("status = ?");
-      values.push(body.status);
-      if (body.status === "done" || body.status === "completed") {
-        sets.push("completed_at = CURRENT_TIMESTAMP");
+      fields.Status = body.status;
+      if (body.status === "done") {
+        fields.CompletedAt = new Date().toISOString();
       }
     }
-    if (body.title !== undefined) {
-      sets.push("title = ?");
-      values.push(body.title);
-    }
-    if (body.priority !== undefined) {
-      sets.push("priority = ?");
-      values.push(body.priority);
-    }
-    if (body.dueDate !== undefined) {
-      sets.push("due_date = ?");
-      values.push(body.dueDate || null);
-    }
-    if (body.description !== undefined) {
-      sets.push("description = ?");
-      values.push(body.description);
-    }
-    if (body.notes !== undefined) {
-      sets.push("notes = ?");
-      values.push(body.notes);
-    }
+    if (body.priority !== undefined) fields.Priority = body.priority;
+    if (body.project !== undefined) fields.Project = body.project;
+    if (body.description !== undefined) fields.Description = body.description;
+    if (body.dueDate !== undefined) fields.DueDate = body.dueDate;
+    if (body.assignee !== undefined) fields.Assignee = body.assignee;
+    if (body.tags !== undefined) fields.Tags = body.tags;
+    if (body.parentTaskId !== undefined) fields.ParentTaskId = body.parentTaskId;
+    if (body.estimatedHours !== undefined) fields.EstimatedHours = body.estimatedHours;
+    if (body.actualHours !== undefined) fields.ActualHours = body.actualHours;
+    if (body.notes !== undefined) fields.Notes = body.notes;
+    if (body.checklist !== undefined) fields.Checklist = body.checklist;
+    if (body.sortOrder !== undefined) fields.SortOrder = body.sortOrder;
 
-    if (sets.length === 0) {
-      return NextResponse.json({ error: "No fields to update" }, { status: 400 });
-    }
-
-    values.push(id);
-    db.prepare(`UPDATE todos SET ${sets.join(", ")} WHERE id = ?`).run(...values);
-
-    const record = db.prepare("SELECT * FROM todos WHERE id = ?").get(id);
+    const record = await updateRecord<TaskFields>("Tasks", id, fields);
     return NextResponse.json(record);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -61,8 +44,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const db = getDb();
-    db.prepare("DELETE FROM todos WHERE id = ?").run(id);
+    await deleteRecord("Tasks", id);
     return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
