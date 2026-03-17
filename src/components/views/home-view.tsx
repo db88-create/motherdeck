@@ -9,9 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
-  Check,
-  Trash2,
-  Plus,
   Copy,
   ChevronRight,
   AlertCircle,
@@ -21,9 +18,12 @@ import {
   Send,
   CheckSquare,
   Lightbulb,
+  Trash2,
+  Clock,
+  ArrowRight,
 } from "lucide-react";
 
-// ─── Action Notes (static quick-reference items) ───
+// ─── Action Notes ───
 const ACTION_NOTES = [
   {
     label: "SSH into ClaudeClaw",
@@ -45,15 +45,6 @@ function priorityColor(p: string) {
   }
 }
 
-function priorityOrder(p: string) {
-  switch (p) {
-    case "urgent": return 0;
-    case "high": return 1;
-    case "medium": return 2;
-    default: return 3;
-  }
-}
-
 // ─── Toast ───
 function Toast({ message, show }: { message: string; show: boolean }) {
   return (
@@ -65,180 +56,169 @@ function Toast({ message, show }: { message: string; show: boolean }) {
   );
 }
 
-// ─── Kanban Card ───
-function KanbanCard({
-  task,
-  onMove,
-  onDelete,
-}: {
-  task: Task;
-  onMove: (id: string, status: string) => void;
-  onDelete: (id: string) => void;
-}) {
-  const dueStr = task.fields.DueDate?.split("T")[0];
-  const isOverdue =
-    dueStr && new Date(dueStr) < new Date(new Date().toISOString().split("T")[0]);
-
-  return (
-    <div className="group/card p-3 rounded-lg bg-[var(--md-bg)] border border-[var(--md-border)] hover:border-[var(--md-border-hover,var(--md-text-tertiary))] transition-colors">
-      <div className="flex items-start gap-2">
-        <span className="flex-1 text-sm text-[var(--md-text-body)] leading-snug">
-          {task.fields.Name}
-        </span>
-        <button
-          onClick={() => onDelete(task.id)}
-          className="opacity-0 group-hover/card:opacity-100 text-[var(--md-text-tertiary)] hover:text-[var(--md-error)] transition-all flex-shrink-0 mt-0.5"
-        >
-          <Trash2 className="w-3 h-3" />
-        </button>
-      </div>
-
-      <div className="flex items-center gap-2 mt-2">
-        <span
-          className={`text-[9px] px-1.5 py-0.5 rounded border font-medium uppercase ${priorityColor(task.fields.Priority)}`}
-        >
-          {task.fields.Priority}
-        </span>
-        {dueStr && (
-          <span
-            className={cn(
-              "text-[10px] tabular-nums",
-              isOverdue
-                ? "text-red-400 font-medium"
-                : "text-[var(--md-text-tertiary)]"
-            )}
-          >
-            {isOverdue && "⚠ "}
-            {dueStr}
-          </span>
-        )}
-      </div>
-
-      {/* Move buttons */}
-      <div className="flex gap-1 mt-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
-        {task.fields.Status !== "todo" && task.fields.Status !== "backlog" && (
-          <button
-            onClick={() => onMove(task.id, task.fields.Status === "done" ? "in_progress" : "todo")}
-            className="text-[10px] px-2 py-0.5 rounded bg-[var(--md-surface)] text-[var(--md-text-secondary)] hover:text-[var(--md-text-body)] transition-colors"
-          >
-            ← Back
-          </button>
-        )}
-        {task.fields.Status !== "done" && (
-          <button
-            onClick={() =>
-              onMove(
-                task.id,
-                task.fields.Status === "in_progress" ? "done" : "in_progress"
-              )
-            }
-            className="text-[10px] px-2 py-0.5 rounded bg-[var(--md-surface)] text-[var(--md-text-secondary)] hover:text-[var(--md-text-body)] transition-colors"
-          >
-            {task.fields.Status === "in_progress" ? "Done →" : "Start →"}
-          </button>
-        )}
-      </div>
-    </div>
+// ─── Today Summary Card ───
+function TodaySummary({ tasks }: { tasks: Task[] }) {
+  const today = new Date().toISOString().split("T")[0];
+  const activeTasks = tasks.filter((t) => t.fields.Status !== "done" && t.fields.Status !== "archived");
+  const inProgress = activeTasks.filter((t) => t.fields.Status === "in_progress");
+  const dueToday = activeTasks.filter((t) => t.fields.DueDate?.split("T")[0] === today);
+  const urgent = activeTasks.filter((t) => t.fields.Priority === "urgent" || t.fields.Priority === "high");
+  const completedToday = tasks.filter(
+    (t) => t.fields.Status === "done" && t.fields.CompletedAt?.split("T")[0] === today
   );
-}
 
-// ─── Kanban Column ───
-function KanbanColumn({
-  title,
-  tasks,
-  color,
-  onMove,
-  onDelete,
-}: {
-  title: string;
-  tasks: Task[];
-  color: string;
-  onMove: (id: string, status: string) => void;
-  onDelete: (id: string) => void;
-}) {
   return (
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-2 mb-3">
-        <div className={`w-2 h-2 rounded-full ${color}`} />
-        <span className="text-xs font-semibold text-[var(--md-text-secondary)] uppercase tracking-wider">
-          {title}
-        </span>
-        <span className="text-[10px] text-[var(--md-text-tertiary)] tabular-nums">
-          {tasks.length}
-        </span>
-      </div>
-      <div className="space-y-2">
-        {tasks
-          .sort((a, b) => priorityOrder(a.fields.Priority) - priorityOrder(b.fields.Priority))
-          .map((t) => (
-            <KanbanCard key={t.id} task={t} onMove={onMove} onDelete={onDelete} />
-          ))}
-        {tasks.length === 0 && (
-          <div className="text-xs text-[var(--md-text-tertiary)] italic py-4 text-center">
-            Empty
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <Card className="bg-[var(--md-bg)]">
+        <CardContent className="pt-4 pb-3">
+          <div className="text-xs text-[var(--md-text-secondary)] mb-1">In Progress</div>
+          <div className="text-2xl font-semibold text-[var(--md-text-primary)] tabular-nums">
+            {inProgress.length}
           </div>
-        )}
-      </div>
+        </CardContent>
+      </Card>
+      <Card className="bg-[var(--md-bg)]">
+        <CardContent className="pt-4 pb-3">
+          <div className="text-xs text-[var(--md-text-secondary)] mb-1">Due Today</div>
+          <div className={cn("text-2xl font-semibold tabular-nums", dueToday.length > 0 ? "text-red-400" : "text-[var(--md-text-primary)]")}>
+            {dueToday.length}
+          </div>
+        </CardContent>
+      </Card>
+      <Card className="bg-[var(--md-bg)]">
+        <CardContent className="pt-4 pb-3">
+          <div className="text-xs text-[var(--md-text-secondary)] mb-1">High Priority</div>
+          <div className={cn("text-2xl font-semibold tabular-nums", urgent.length > 0 ? "text-orange-400" : "text-[var(--md-text-primary)]")}>
+            {urgent.length}
+          </div>
+        </CardContent>
+      </Card>
+      <Card className="bg-[var(--md-bg)]">
+        <CardContent className="pt-4 pb-3">
+          <div className="text-xs text-[var(--md-text-secondary)] mb-1">Done Today</div>
+          <div className="text-2xl font-semibold text-emerald-500 tabular-nums">
+            {completedToday.length}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
-// ─── New Task Form ───
-function NewTaskForm({ onCreated }: { onCreated: () => void }) {
-  const [name, setName] = useState("");
-  const [priority, setPriority] = useState("medium");
-  const [dueDate, setDueDate] = useState("");
+// ─── This Week Section ───
+function ThisWeek({ tasks }: { tasks: Task[] }) {
+  const today = new Date().toISOString().split("T")[0];
+  const weekEnd = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0];
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name.trim()) return;
-    await fetch("/api/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: name.trim(),
-        priority,
-        dueDate: dueDate || undefined,
-        status: "todo",
-      }),
-    });
-    setName("");
-    setPriority("medium");
-    setDueDate("");
-    onCreated();
+  const upcoming = tasks
+    .filter((t) => {
+      const d = t.fields.DueDate?.split("T")[0];
+      return d && d >= today && d <= weekEnd && t.fields.Status !== "done" && t.fields.Status !== "archived";
+    })
+    .sort((a, b) => (a.fields.DueDate || "").localeCompare(b.fields.DueDate || ""));
+
+  // Group by project
+  const byProject = new Map<string, Task[]>();
+  for (const t of upcoming) {
+    const proj = t.fields.Project || "Other";
+    if (!byProject.has(proj)) byProject.set(proj, []);
+    byProject.get(proj)!.push(t);
+  }
+
+  if (upcoming.length === 0) {
+    return (
+      <div className="text-sm text-[var(--md-text-tertiary)] italic py-2">
+        Nothing due this week.
+      </div>
+    );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2 mt-3">
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Add a new task…"
-        className="flex-1 px-3 py-2 rounded-lg bg-[var(--md-surface)] border border-[var(--md-border)] text-sm text-[var(--md-text-body)] placeholder:text-[var(--md-text-tertiary)] outline-none focus:border-[var(--primary)] transition-colors"
-      />
-      <select
-        value={priority}
-        onChange={(e) => setPriority(e.target.value)}
-        className="px-2 py-2 rounded-lg bg-[var(--md-surface)] border border-[var(--md-border)] text-xs text-[var(--md-text-secondary)] outline-none"
-      >
-        <option value="low">Low</option>
-        <option value="medium">Med</option>
-        <option value="high">High</option>
-        <option value="urgent">Urgent</option>
-      </select>
-      <input
-        type="date"
-        value={dueDate}
-        onChange={(e) => setDueDate(e.target.value)}
-        className="px-2 py-2 rounded-lg bg-[var(--md-surface)] border border-[var(--md-border)] text-xs text-[var(--md-text-secondary)] outline-none"
-      />
-      <button
-        type="submit"
-        className="px-3 py-2 rounded-lg bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
-      >
-        <Plus className="w-4 h-4" />
-      </button>
-    </form>
+    <div className="space-y-3">
+      {Array.from(byProject.entries()).map(([project, projectTasks]) => (
+        <div key={project}>
+          <div className="text-xs font-medium text-[var(--md-text-tertiary)] uppercase tracking-wider mb-1.5 px-1">
+            {project}
+          </div>
+          {projectTasks.map((t) => {
+            const dueStr = t.fields.DueDate?.split("T")[0];
+            const isToday = dueStr === today;
+            return (
+              <div
+                key={t.id}
+                className="flex items-center gap-3 py-1.5 px-3 rounded-lg hover:bg-[var(--md-surface)] transition-colors"
+              >
+                <ChevronRight className="w-3 h-3 text-[var(--md-text-tertiary)]" />
+                <span className="flex-1 text-sm text-[var(--md-text-body)]">
+                  {t.fields.Name}
+                </span>
+                <span
+                  className={`text-[9px] px-1.5 py-0.5 rounded border font-medium uppercase ${priorityColor(t.fields.Priority)}`}
+                >
+                  {t.fields.Priority}
+                </span>
+                <span
+                  className={cn(
+                    "text-[11px] tabular-nums min-w-[50px] text-right",
+                    isToday ? "text-red-400 font-semibold" : "text-[var(--md-text-tertiary)]"
+                  )}
+                >
+                  {isToday ? "TODAY" : dueStr}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── In Progress Snapshot ───
+function InProgressSnapshot({
+  tasks,
+}: {
+  tasks: Task[];
+}) {
+  const inProgress = tasks
+    .filter((t) => t.fields.Status === "in_progress")
+    .sort((a, b) => {
+      const po: Record<string, number> = { urgent: 0, high: 1, medium: 2, low: 3 };
+      return (po[a.fields.Priority] ?? 3) - (po[b.fields.Priority] ?? 3);
+    });
+
+  if (inProgress.length === 0) {
+    return (
+      <div className="text-sm text-[var(--md-text-tertiary)] italic py-2">
+        Nothing in progress right now.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      {inProgress.map((t) => (
+        <div
+          key={t.id}
+          className="flex items-center gap-3 py-1.5 px-3 rounded-lg hover:bg-[var(--md-surface)] transition-colors"
+        >
+          <Clock className="w-3.5 h-3.5 text-amber-500" />
+          <span className="flex-1 text-sm text-[var(--md-text-body)]">
+            {t.fields.Name}
+          </span>
+          {t.fields.Project && (
+            <span className="text-[10px] text-[var(--md-text-tertiary)]">
+              {t.fields.Project}
+            </span>
+          )}
+          <span
+            className={`text-[9px] px-1.5 py-0.5 rounded border font-medium uppercase ${priorityColor(t.fields.Priority)}`}
+          >
+            {t.fields.Priority}
+          </span>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -347,7 +327,7 @@ function BrainDump() {
                 handleSubmit();
               }
             }}
-            placeholder="Spew it out... Raw thoughts, ideas, tasks, anything. They'll get organized."
+            placeholder="Spew it out... Raw thoughts, ideas, tasks, anything."
             className="w-full h-24 p-4 font-mono text-sm border border-[var(--md-border)] rounded-lg bg-[var(--md-bg)] text-[var(--md-text-body)] placeholder:text-[var(--md-text-disabled)] focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none resize-none transition-colors duration-200"
           />
           <div className="absolute bottom-3 right-3 flex items-center gap-2">
@@ -505,172 +485,82 @@ export function HomeView() {
     try {
       const res = await fetch("/api/tasks");
       const data = await res.json();
-      if (Array.isArray(data)) {
-        setAllTasks(data);
-      }
-    } catch {
-      /* silently fail */
-    } finally {
-      setLoading(false);
-    }
+      if (Array.isArray(data)) setAllTasks(data);
+    } catch {}
+    finally { setLoading(false); }
   }, []);
 
-  useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
+  useEffect(() => { fetchTasks(); }, [fetchTasks]);
 
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(""), 1500);
   }
 
-  async function moveTask(id: string, status: string) {
-    await fetch(`/api/tasks/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    });
-    fetchTasks();
-  }
-
-  async function deleteTask(id: string) {
-    await fetch(`/api/tasks/${id}`, { method: "DELETE" });
-    fetchTasks();
-  }
-
-  // Split tasks for kanban
-  const todoTasks = allTasks.filter(
-    (t) => t.fields.Status === "todo" || t.fields.Status === "backlog"
-  );
-  const inProgressTasks = allTasks.filter(
-    (t) => t.fields.Status === "in_progress"
-  );
-  const recentDone = allTasks
-    .filter((t) => t.fields.Status === "done")
-    .slice(0, 5);
-
-  // Upcoming reminders: tasks with due dates in next 7 days
+  // Reminder counts
   const today = new Date().toISOString().split("T")[0];
+  const activeTasks = allTasks.filter((t) => t.fields.Status !== "done" && t.fields.Status !== "archived");
+  const urgent = activeTasks.filter((t) => t.fields.Priority === "urgent" || t.fields.Priority === "high");
   const weekEnd = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0];
-  const upcoming = allTasks
-    .filter((t) => {
-      const d = t.fields.DueDate?.split("T")[0];
-      return d && d >= today && d <= weekEnd && t.fields.Status !== "done";
-    })
-    .sort((a, b) => {
-      const da = a.fields.DueDate || "";
-      const db = b.fields.DueDate || "";
-      return da.localeCompare(db);
-    });
-
-  // Blocked/urgent items
-  const urgentItems = allTasks.filter(
-    (t) =>
-      t.fields.Status !== "done" &&
-      (t.fields.Priority === "urgent" || t.fields.Priority === "high")
-  );
+  const dueThisWeek = activeTasks.filter((t) => {
+    const d = t.fields.DueDate?.split("T")[0];
+    return d && d >= today && d <= weekEnd;
+  });
 
   return (
     <>
       <div className="space-y-8 max-w-5xl">
-        {/* ── Reminders Bar ── */}
-        {(upcoming.length > 0 || urgentItems.length > 0) && (
+        {/* ── Reminders ── */}
+        {!loading && (urgent.length > 0 || dueThisWeek.length > 0) && (
           <div className="flex flex-wrap gap-3">
-            {urgentItems.length > 0 && (
+            {urgent.length > 0 && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 dark:bg-red-500/10 dark:border-red-500/20">
                 <AlertCircle className="w-4 h-4 text-red-500" />
                 <span className="text-sm text-red-700 dark:text-red-400">
-                  {urgentItems.length} high-priority item{urgentItems.length !== 1 ? "s" : ""} need attention
+                  {urgent.length} high-priority item{urgent.length !== 1 ? "s" : ""} need attention
                 </span>
               </div>
             )}
-            {upcoming.length > 0 && (
+            {dueThisWeek.length > 0 && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 border border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20">
                 <Calendar className="w-4 h-4 text-blue-500" />
                 <span className="text-sm text-blue-700 dark:text-blue-400">
-                  {upcoming.length} task{upcoming.length !== 1 ? "s" : ""} due this week
+                  {dueThisWeek.length} task{dueThisWeek.length !== 1 ? "s" : ""} due this week
                 </span>
               </div>
             )}
           </div>
         )}
 
-        {/* ── Kanban Board ── */}
+        {/* ── Today at a Glance ── */}
         <section>
-          <h2 className="text-sm font-semibold text-[var(--md-text-primary)] uppercase tracking-wider mb-4">
-            Tasks
+          <h2 className="text-sm font-semibold text-[var(--md-text-primary)] uppercase tracking-wider mb-3">
+            Today
           </h2>
           {loading ? (
             <div className="text-sm text-[var(--md-text-tertiary)] py-4">Loading…</div>
           ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <KanbanColumn
-                  title="To Do"
-                  tasks={todoTasks}
-                  color="bg-blue-500"
-                  onMove={moveTask}
-                  onDelete={deleteTask}
-                />
-                <KanbanColumn
-                  title="In Progress"
-                  tasks={inProgressTasks}
-                  color="bg-amber-500"
-                  onMove={moveTask}
-                  onDelete={deleteTask}
-                />
-                <KanbanColumn
-                  title="Done"
-                  tasks={recentDone}
-                  color="bg-emerald-500"
-                  onMove={moveTask}
-                  onDelete={deleteTask}
-                />
-              </div>
-              <NewTaskForm onCreated={fetchTasks} />
-            </>
+            <TodaySummary tasks={allTasks} />
           )}
         </section>
 
-        {/* ── Upcoming This Week ── */}
-        {upcoming.length > 0 && (
-          <section>
-            <h2 className="text-sm font-semibold text-[var(--md-text-primary)] uppercase tracking-wider mb-3">
-              Due This Week
-            </h2>
-            <div className="space-y-1">
-              {upcoming.map((t) => {
-                const dueStr = t.fields.DueDate?.split("T")[0];
-                const isToday = dueStr === today;
-                return (
-                  <div
-                    key={t.id}
-                    className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-[var(--md-surface)] transition-colors"
-                  >
-                    <ChevronRight className="w-3.5 h-3.5 text-[var(--md-text-tertiary)]" />
-                    <span className="flex-1 text-sm text-[var(--md-text-body)]">
-                      {t.fields.Name}
-                    </span>
-                    <span
-                      className={`text-[9px] px-1.5 py-0.5 rounded border font-medium uppercase ${priorityColor(t.fields.Priority)}`}
-                    >
-                      {t.fields.Priority}
-                    </span>
-                    <span
-                      className={cn(
-                        "text-[11px] tabular-nums",
-                        isToday
-                          ? "text-red-400 font-semibold"
-                          : "text-[var(--md-text-tertiary)]"
-                      )}
-                    >
-                      {isToday ? "TODAY" : dueStr}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+        {/* ── Two-column layout: Week + In Progress ── */}
+        {!loading && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <section>
+              <h2 className="text-sm font-semibold text-[var(--md-text-primary)] uppercase tracking-wider mb-3">
+                This Week
+              </h2>
+              <ThisWeek tasks={allTasks} />
+            </section>
+
+            <section>
+              <h2 className="text-sm font-semibold text-[var(--md-text-primary)] uppercase tracking-wider mb-3">
+                In Progress
+              </h2>
+              <InProgressSnapshot tasks={allTasks} />
+            </section>
+          </div>
         )}
 
         {/* ── Brain Dump ── */}
