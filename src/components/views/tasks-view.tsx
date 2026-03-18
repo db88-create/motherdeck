@@ -49,7 +49,9 @@ import {
   Loader2,
   Sparkles,
   Keyboard,
+  Command,
 } from "lucide-react";
+import { KanbanView } from "./kanban-view";
 
 // ============ CONSTANTS ============
 
@@ -361,8 +363,13 @@ export function TasksView() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-[var(--md-text-primary)]">Tasks</h1>
-          <p className="text-sm text-[var(--md-text-secondary)] mt-1">
-            {activeTasks} active &middot; {doneTasks} completed
+          <p className="text-xs text-[var(--md-text-tertiary)] mt-1 space-x-3 flex flex-wrap gap-2">
+            <span className="text-[var(--md-text-secondary)]">
+              {activeTasks} active &middot; {doneTasks} completed
+            </span>
+            <span className="text-[var(--md-text-disabled)] hidden sm:inline">
+              Press <kbd className="px-2 py-0.5 bg-[var(--md-surface)] rounded border border-[var(--md-border)] text-xs font-medium">N</kbd> to add • <kbd className="px-2 py-0.5 bg-[var(--md-surface)] rounded border border-[var(--md-border)] text-xs font-medium">Space</kbd> to toggle • <kbd className="px-2 py-0.5 bg-[var(--md-surface)] rounded border border-[var(--md-border)] text-xs font-medium">⌘⌫</kbd> to delete
+            </span>
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -1184,124 +1191,4 @@ function ContextMenu({
   );
 }
 
-// ============ KANBAN VIEW ============
-
-const KANBAN_COLUMNS = [
-  { id: "backlog" as const, label: "Backlog", color: "text-[var(--md-text-tertiary)]" },
-  { id: "todo" as const, label: "To Do", color: "text-[var(--md-info)]" },
-  {
-    id: "in_progress" as const,
-    label: "In Progress",
-    color: "text-[var(--md-warning)]",
-  },
-  { id: "done" as const, label: "Done", color: "text-[var(--md-success)]" },
-];
-
-function KanbanView({
-  tasks,
-  onStatusChange,
-  onDelete,
-  onToggleComplete,
-}: {
-  tasks: Task[];
-  onStatusChange: (id: string, status: string) => void;
-  onDelete: (id: string) => void;
-  onToggleComplete: (id: string) => void;
-}) {
-  const tasksByStatus = (status: string) =>
-    tasks.filter((t) => t.fields.Status === status);
-
-  const advanceOrder: TaskFields["Status"][] = [
-    "backlog",
-    "todo",
-    "in_progress",
-    "done",
-  ];
-
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {KANBAN_COLUMNS.map((col) => (
-        <div key={col.id} className="space-y-3">
-          <div className="flex items-center gap-2 px-1 mb-4">
-            <span className={cn("text-sm font-semibold", col.color)}>
-              {col.label}
-            </span>
-            <Badge
-              variant="secondary"
-              className="ml-auto"
-            >
-              {tasksByStatus(col.id).length}
-            </Badge>
-          </div>
-          <div className="space-y-3 min-h-[200px]">
-            {tasksByStatus(col.id).map((task) => {
-              const currentIdx = advanceOrder.indexOf(task.fields.Status);
-              return (
-                <div
-                  key={task.id}
-                  className="p-4 rounded-xl bg-[var(--md-bg)] shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_4px_rgba(0,0,0,0.04)] group hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-all duration-200 ease-in-out"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-medium text-[var(--md-text-body)] leading-snug">
-                      {task.fields.Name}
-                    </p>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0">
-                      {currentIdx < advanceOrder.length - 1 && (
-                        <button
-                          onClick={() =>
-                            onStatusChange(
-                              task.id,
-                              advanceOrder[currentIdx + 1]
-                            )
-                          }
-                          className="p-1.5 text-[var(--md-text-disabled)] hover:text-violet-500 transition-colors duration-200"
-                          title="Advance"
-                        >
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => onDelete(task.id)}
-                        className="p-1.5 text-[var(--md-text-disabled)] hover:text-[var(--md-error)] transition-colors duration-200"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                  {task.fields.Description && (
-                    <p className="text-xs text-[var(--md-text-tertiary)] mt-1.5 line-clamp-2">
-                      {task.fields.Description}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-2 mt-3 flex-wrap">
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "text-xs",
-                        PRIORITY_COLORS[task.fields.Priority] || ""
-                      )}
-                    >
-                      {task.fields.Priority}
-                    </Badge>
-                    {task.fields.Project && (
-                      <Badge
-                        variant="outline"
-                        className="text-xs bg-[var(--md-highlight)] text-violet-600 border-violet-100"
-                      >
-                        {task.fields.Project}
-                      </Badge>
-                    )}
-                    {task.fields.DueDate && (
-                      <DueDateBadge dateStr={task.fields.DueDate} />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+// KanbanView now imported from kanban-view.tsx

@@ -14,12 +14,14 @@ export default function Home() {
   return (
     <div className="flex h-dvh overflow-hidden bg-[var(--md-bg)]">
       <Nav active={tab} onChange={setTab} />
-      <main className="flex-1 overflow-y-auto px-6 py-8 md:px-8 md:py-8 lg:px-10 pb-24 md:pb-8 max-w-[1200px]">
-        {tab === "command" && <HomeView />}
-        {tab === "tasks" && <TasksView />}
-        {tab === "usage" && <UsageView />}
-        {tab === "ideas" && <IdeasExpensesView />}
-        {tab === "briefs" && <BriefsView />}
+      <main className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-8 md:px-8 md:py-8 lg:px-10 pb-24 md:pb-8 w-full">
+        <div className="max-w-[1400px] mx-auto">
+          {tab === "command" && <HomeView />}
+          {tab === "tasks" && <TasksView />}
+          {tab === "usage" && <UsageView />}
+          {tab === "ideas" && <IdeasExpensesView />}
+          {tab === "briefs" && <BriefsView />}
+        </div>
       </main>
     </div>
   );
