@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Task } from "@/lib/types";
+import { Task, ActionNote as ActionNoteType } from "@/lib/types";
 import { useNotes, Note } from "@/lib/hooks/useNotes";
 import { useVoiceRecording } from "@/lib/hooks/useVoiceRecording";
 import { useApi } from "@/lib/hooks";
@@ -21,15 +21,9 @@ import {
   Trash2,
   Clock,
   ArrowRight,
+  Plus,
+  X,
 } from "lucide-react";
-
-// ─── Action Notes ───
-const ACTION_NOTES = [
-  {
-    label: "SSH into ClaudeClaw",
-    code: "ssh -t claudeclaw@192.168.0.124 claude --dangerously-skip-permissions",
-  },
-];
 
 // ─── Priority helpers ───
 function priorityColor(p: string) {
@@ -442,17 +436,19 @@ function BrainDump() {
 }
 
 // ─── Action Note Card ───
-function ActionNote({
+function ActionNoteCard({
   label,
   code,
   onCopy,
+  onDelete,
 }: {
   label: string;
   code: string;
   onCopy: () => void;
+  onDelete?: () => void;
 }) {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg bg-[var(--md-surface)] border border-[var(--md-border)]">
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-[var(--md-surface)] border border-[var(--md-border)] group/action">
       <div className="flex-1 min-w-0">
         <div className="text-xs font-medium text-[var(--md-text-secondary)] mb-1">
           {label}
@@ -461,16 +457,27 @@ function ActionNote({
           {code}
         </code>
       </div>
-      <button
-        onClick={() => {
-          navigator.clipboard.writeText(code);
-          onCopy();
-        }}
-        className="flex-shrink-0 p-2 rounded-md hover:bg-[var(--md-bg-alt)] text-[var(--md-text-tertiary)] hover:text-[var(--md-text-body)] transition-colors"
-        title="Copy to clipboard"
-      >
-        <Copy className="w-4 h-4" />
-      </button>
+      <div className="flex items-center gap-1 flex-shrink-0">
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(code);
+            onCopy();
+          }}
+          className="p-2 rounded-md hover:bg-[var(--md-bg-alt)] text-[var(--md-text-tertiary)] hover:text-[var(--md-text-body)] transition-colors"
+          title="Copy to clipboard"
+        >
+          <Copy className="w-4 h-4" />
+        </button>
+        {onDelete && (
+          <button
+            onClick={onDelete}
+            className="p-2 rounded-md hover:bg-red-500/10 text-[var(--md-text-disabled)] hover:text-red-500 transition-colors opacity-0 group-hover/action:opacity-100"
+            title="Delete"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -480,6 +487,11 @@ export function HomeView() {
   const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState("");
+  const [actionNotes, setActionNotes] = useState<ActionNoteType[]>([]);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newLabel, setNewLabel] = useState("");
+  const [newCode, setNewCode] = useState("");
+  const { post, del } = useApi();
 
   const fetchTasks = useCallback(async () => {
     try {
@@ -490,7 +502,40 @@ export function HomeView() {
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { fetchTasks(); }, [fetchTasks]);
+  const fetchActionNotes = useCallback(async () => {
+    try {
+      const res = await fetch("/api/action-notes");
+      const data = await res.json();
+      if (Array.isArray(data)) setActionNotes(data);
+    } catch {}
+  }, []);
+
+  useEffect(() => { fetchTasks(); fetchActionNotes(); }, [fetchTasks, fetchActionNotes]);
+
+  const handleAddActionNote = async () => {
+    if (!newLabel.trim() || !newCode.trim()) return;
+    try {
+      const record = await post("/api/action-notes", {
+        label: newLabel.trim(),
+        code: newCode.trim(),
+      });
+      if (record?.id) {
+        setActionNotes((prev) => [...prev, record]);
+        setNewLabel("");
+        setNewCode("");
+        setShowAddForm(false);
+        showToast("Action note created!");
+      }
+    } catch {}
+  };
+
+  const handleDeleteActionNote = async (id: string) => {
+    try {
+      await del(`/api/action-notes?id=${id}`);
+      setActionNotes((prev) => prev.filter((n) => n.id !== id));
+      showToast("Deleted");
+    } catch {}
+  };
 
   function showToast(msg: string) {
     setToast(msg);
@@ -570,18 +615,76 @@ export function HomeView() {
 
         {/* ── Action Notes ── */}
         <section>
-          <h2 className="text-sm font-semibold text-[var(--md-text-primary)] uppercase tracking-wider mb-3">
-            Action Notes
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-[var(--md-text-primary)] uppercase tracking-wider">
+              Action Notes
+            </h2>
+            <button
+              onClick={() => setShowAddForm(!showAddForm)}
+              className={cn(
+                "flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-all duration-200",
+                showAddForm
+                  ? "bg-[var(--md-surface)] text-[var(--md-text-body)]"
+                  : "text-[var(--md-text-secondary)] hover:bg-[var(--md-surface)] hover:text-[var(--md-text-body)]"
+              )}
+            >
+              {showAddForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+              {showAddForm ? "Cancel" : "Add"}
+            </button>
+          </div>
+
+          {showAddForm && (
+            <div className="mb-3 p-4 rounded-lg border border-[var(--md-border)] bg-[var(--md-bg)] space-y-3">
+              <input
+                type="text"
+                value={newLabel}
+                onChange={(e) => setNewLabel(e.target.value)}
+                placeholder="Label (e.g. Deploy to prod)"
+                className="w-full px-3 py-2 text-sm border border-[var(--md-border)] rounded-lg bg-[var(--md-bg)] text-[var(--md-text-body)] placeholder:text-[var(--md-text-disabled)] focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none transition-colors"
+              />
+              <input
+                type="text"
+                value={newCode}
+                onChange={(e) => setNewCode(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddActionNote();
+                  }
+                }}
+                placeholder="Command / snippet to copy"
+                className="w-full px-3 py-2 text-sm font-mono border border-[var(--md-border)] rounded-lg bg-[var(--md-bg)] text-[var(--md-text-body)] placeholder:text-[var(--md-text-disabled)] focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none transition-colors"
+              />
+              <button
+                onClick={handleAddActionNote}
+                disabled={!newLabel.trim() || !newCode.trim()}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                  newLabel.trim() && newCode.trim()
+                    ? "bg-violet-600 text-white hover:bg-violet-700"
+                    : "bg-[var(--md-surface)] text-[var(--md-text-disabled)] cursor-not-allowed"
+                )}
+              >
+                Save
+              </button>
+            </div>
+          )}
+
           <div className="space-y-2">
-            {ACTION_NOTES.map((note, i) => (
-              <ActionNote
-                key={i}
-                label={note.label}
-                code={note.code}
+            {actionNotes.map((note) => (
+              <ActionNoteCard
+                key={note.id}
+                label={note.fields.Label}
+                code={note.fields.Code}
                 onCopy={() => showToast("Copied!")}
+                onDelete={() => handleDeleteActionNote(note.id)}
               />
             ))}
+            {actionNotes.length === 0 && !showAddForm && (
+              <div className="text-sm text-[var(--md-text-tertiary)] italic py-2">
+                No action notes yet. Click Add to create one.
+              </div>
+            )}
           </div>
         </section>
       </div>

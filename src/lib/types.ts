@@ -213,6 +213,19 @@ export interface NoteRecord {
   fields: NoteFields;
 }
 
+// Action Notes (quick-copy command snippets)
+export interface ActionNoteFields {
+  Label: string;
+  Code: string;
+  SortOrder?: number;
+  CreatedAt: string;
+}
+
+export interface ActionNote {
+  id: string;
+  fields: ActionNoteFields;
+}
+
 // ============ DASHBOARD AGGREGATES ============
 
 export interface CostSummary {
