@@ -74,7 +74,7 @@ Before deploying, ensure these are set in Vercel project settings:
 ```bash
 AIRTABLE_PAT=your_airtable_pat_here
 AIRTABLE_BASE_ID=your_base_id_here
-ANTHROPIC_API_KEY=sk-ant-v3-[YOUR_KEY_HERE]
+ANTHROPIC_API_KEY=your_anthropic_key_here
 NEXT_PUBLIC_APP_NAME=MotherDeck
 ```
 
