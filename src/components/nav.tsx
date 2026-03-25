@@ -3,21 +3,28 @@
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/lib/hooks/useTheme";
 import {
-  LayoutDashboard,
-  CheckSquare,
+  CalendarDays,
+  Calendar,
   BarChart3,
   Lightbulb,
   Newspaper,
+  Rocket,
+  ClipboardCheck,
+  StickyNote,
   Sun,
   Moon,
 } from "lucide-react";
+import { InstallPrompt } from "./install-prompt";
 
 const tabs = [
-  { id: "command", label: "Command Center", icon: LayoutDashboard },
-  { id: "tasks", label: "Tasks", icon: CheckSquare },
-  { id: "usage", label: "Usage & Costs", icon: BarChart3 },
+  { id: "today", label: "Today", icon: CalendarDays },
+  { id: "calendar", label: "Calendar", icon: Calendar },
+  { id: "mission", label: "Mission Control", icon: Rocket },
+{ id: "action-notes", label: "Action Notes", icon: StickyNote },
   { id: "ideas", label: "Ideas & Expenses", icon: Lightbulb },
   { id: "briefs", label: "Briefs & Activity", icon: Newspaper },
+  { id: "usage", label: "Usage & Costs", icon: BarChart3 },
+  { id: "review", label: "Review", icon: ClipboardCheck },
 ] as const;
 
 export type TabId = (typeof tabs)[number]["id"];
@@ -37,10 +44,10 @@ export function Nav({
       <nav className="hidden md:flex flex-col w-56 bg-[var(--md-bg-alt)] border-r border-[var(--md-border)] p-4 gap-1 shrink-0">
         <div className="flex items-center gap-3 mb-8 px-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white font-bold text-sm">
-            M
+            C
           </div>
           <span className="font-semibold text-[var(--md-text-primary)] tracking-tight">
-            MotherDeck
+            Command
           </span>
         </div>
         {tabs.map((tab) => (
@@ -59,8 +66,9 @@ export function Nav({
           </button>
         ))}
 
-        {/* Theme toggle */}
-        <div className="mt-auto pt-4">
+        {/* Install prompt + Theme toggle */}
+        <div className="mt-auto pt-4 flex flex-col gap-2">
+          <InstallPrompt />
           <button
             onClick={toggle}
             className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ease-in-out min-h-[44px] w-full text-[var(--md-text-secondary)] hover:bg-[var(--md-surface)] hover:text-[var(--md-text-body)]"
@@ -91,9 +99,7 @@ export function Nav({
             >
               <tab.icon className="w-5 h-5" />
               <span className="truncate max-w-[60px]">
-                {tab.id === "command"
-                  ? "Home"
-                  : tab.id === "ideas"
+                {tab.id === "ideas"
                   ? "Ideas"
                   : tab.id === "briefs"
                   ? "Briefs"

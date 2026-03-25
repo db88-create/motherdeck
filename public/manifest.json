@@ -1,11 +1,14 @@
 {
-  "name": "MotherDeck",
-  "short_name": "MotherDeck",
-  "description": "OpenClaw command center and task dashboard",
+  "name": "Command",
+  "short_name": "Command",
+  "description": "Daily execution surface",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "background_color": "#09090b",
   "theme_color": "#09090b",
+  "categories": ["productivity", "business"],
   "icons": [
     {
       "src": "/icon-192.png",
@@ -16,6 +19,42 @@
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Today",
+      "short_name": "Today",
+      "url": "/?view=today",
+      "description": "Daily checklist and notes",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Calendar",
+      "short_name": "Calendar",
+      "url": "/?view=calendar",
+      "description": "Calendar view",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mission Control",
+      "short_name": "Mission",
+      "url": "/?view=mission",
+      "description": "Strategic projects and workstreams",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Action Notes",
+      "short_name": "Actions",
+      "url": "/?view=action-notes",
+      "description": "Action tracking",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
