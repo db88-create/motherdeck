@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/lib/hooks/useTheme";
 import {
   CalendarDays,
+  CalendarRange,
   Calendar,
   BarChart3,
   Lightbulb,
@@ -18,6 +19,7 @@ import { InstallPrompt } from "./install-prompt";
 
 const tabs = [
   { id: "today", label: "Today", icon: CalendarDays },
+  { id: "week", label: "Week", icon: CalendarRange },
   { id: "calendar", label: "Calendar", icon: Calendar },
   { id: "mission", label: "Mission Control", icon: Rocket },
 { id: "action-notes", label: "Action Notes", icon: StickyNote },

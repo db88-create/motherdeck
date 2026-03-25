@@ -11,6 +11,7 @@ import { IdeasExpensesView } from "@/components/views/ideas-expenses-view";
 import { BriefsView } from "@/components/views/briefs-view";
 import { ActionNotesView } from "@/components/views/action-notes-view";
 import { ReviewView } from "@/components/views/review-view";
+import { WeekView } from "@/components/views/week-view";
 import { CalendarView } from "@/components/views/calendar-view";
 
 export default function Home() {
@@ -36,6 +37,9 @@ export default function Home() {
               selectedTaskId={selectedTaskId}
               onSelectTask={setSelectedTaskId}
             />
+          )}
+          {tab === "week" && (
+            <WeekView store={store} />
           )}
           {tab === "calendar" && (
             <CalendarView
