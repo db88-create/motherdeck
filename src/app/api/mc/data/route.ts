@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
-const LINEAR_API_KEY = process.env.LINEAR_API_KEY || "";
-const LINEAR_TEAM_ID = process.env.LINEAR_TEAM_ID || "e560f00e-98cb-41b3-99e1-e07ede804cc3";
+// Read at request time, not build time
+function getLinearApiKey() { return process.env.LINEAR_API_KEY || ""; }
+function getLinearTeamId() { return process.env.LINEAR_TEAM_ID || "e560f00e-98cb-41b3-99e1-e07ede804cc3"; }
 
 // ── Config (matches mission-control-web.py) ──
 
@@ -75,18 +76,20 @@ const MC_CONFIG = {
 // ── Linear GraphQL helper ──
 
 async function gql(query: string) {
+  const apiKey = getLinearApiKey();
   const res = await fetch("https://api.linear.app/graphql", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: LINEAR_API_KEY,
+      Authorization: apiKey,
     },
     body: JSON.stringify({ query }),
     cache: "no-store",
   });
 
   if (!res.ok) {
-    throw new Error(`Linear API returned ${res.status}`);
+    const body = await res.text().catch(() => "");
+    throw new Error(`Linear API returned ${res.status}: ${body}`);
   }
 
   return res.json();
@@ -116,6 +119,9 @@ async function fetchNetworkHealth() {
 // ── Main handler ──
 
 export async function GET() {
+  const LINEAR_API_KEY = getLinearApiKey();
+  const LINEAR_TEAM_ID = getLinearTeamId();
+
   if (!LINEAR_API_KEY) {
     return NextResponse.json(
       { error: "LINEAR_API_KEY not configured", mc_down: true },
