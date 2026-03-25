@@ -7,10 +7,11 @@ export async function GET(req: NextRequest) {
     // Default: today's notes only
     const all = req.nextUrl.searchParams.get("all") === "true";
     const today = new Date().toISOString().split("T")[0];
+    const tomorrow = new Date(Date.now() + 86400000).toISOString().split("T")[0];
 
     const filterByFormula = all
       ? ""
-      : `IS_SAME_DAY({Timestamp}, '${today}')`;
+      : `AND({Timestamp} >= '${today}', {Timestamp} < '${tomorrow}')`;
 
     const records = await fetchAll<NoteFields>("Notes", {
       filterByFormula,

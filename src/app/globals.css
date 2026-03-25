@@ -185,3 +185,130 @@
     @apply font-sans;
   }
 }
+
+/* ─── Mission Control: 10-foot display ─── */
+
+.mc-root {
+  line-height: 1.8;
+}
+
+/* Red pulse for blockers */
+@keyframes mc-pulse-red {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.mc-pulse {
+  animation: mc-pulse-red 2s ease-in-out infinite;
+}
+
+/* Amber glow for urgent deadlines */
+@keyframes mc-glow-amber-anim {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+  50% { box-shadow: 0 0 16px 4px rgba(245, 158, 11, 0.25); }
+}
+
+.mc-glow-amber {
+  animation: mc-glow-amber-anim 2s ease-in-out infinite;
+}
+
+/* ─── FullCalendar theme overrides ─── */
+
+.fc-md-wrapper .fc {
+  --fc-border-color: var(--md-border);
+  --fc-button-bg-color: var(--md-surface);
+  --fc-button-border-color: var(--md-border);
+  --fc-button-text-color: var(--md-text-body);
+  --fc-button-hover-bg-color: var(--md-surface-hover);
+  --fc-button-hover-border-color: var(--md-border);
+  --fc-button-active-bg-color: #8b5cf6;
+  --fc-button-active-border-color: #8b5cf6;
+  --fc-today-bg-color: rgba(139, 92, 246, 0.06);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: var(--md-surface);
+  --fc-event-bg-color: #8b5cf6;
+  --fc-event-border-color: #8b5cf6;
+  --fc-event-text-color: #ffffff;
+  font-size: 0.85rem;
+}
+
+.fc-md-wrapper .fc .fc-toolbar-title {
+  color: var(--md-text-primary);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.fc-md-wrapper .fc .fc-col-header-cell-cushion {
+  color: var(--md-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.fc-md-wrapper .fc .fc-daygrid-day-number {
+  color: var(--md-text-secondary);
+  font-size: 0.8rem;
+  padding: 4px 8px;
+}
+
+.fc-md-wrapper .fc .fc-day-today .fc-daygrid-day-number {
+  color: #8b5cf6;
+  font-weight: 700;
+}
+
+.fc-md-wrapper .fc .fc-daygrid-event {
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-size: 0.75rem;
+  border: none;
+  cursor: pointer;
+}
+
+/* Active tasks — violet */
+.fc-md-wrapper .fc-md-event {
+  background-color: #8b5cf6;
+  border-left: 3px solid #7c3aed;
+}
+
+/* Overdue tasks — red */
+.fc-md-wrapper .fc-md-overdue {
+  background-color: #ef4444;
+  border-left: 3px solid #dc2626;
+}
+
+/* Deferred tasks — amber */
+.fc-md-wrapper .fc-md-deferred {
+  background-color: #f59e0b;
+  border-left: 3px solid #d97706;
+}
+
+/* Dropped tasks — gray */
+.fc-md-wrapper .fc-md-dropped {
+  background-color: var(--md-text-tertiary);
+  border-left: 3px solid var(--md-text-disabled);
+  opacity: 0.6;
+}
+
+.fc-md-wrapper .fc .fc-button {
+  border-radius: 6px;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.fc-md-wrapper .fc .fc-button:focus {
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+.fc-md-wrapper .fc .fc-daygrid-day:hover {
+  background-color: var(--md-surface-hover);
+  cursor: pointer;
+}
+
+.fc-md-wrapper .fc .fc-daygrid-more-link {
+  color: #8b5cf6;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
