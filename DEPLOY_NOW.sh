@@ -1,10 +1,10 @@
 #!/bin/bash
-# Motherdeck Production Deployment Script
+# Command Production Deployment Script
 # Run this after setting VERCEL_TOKEN environment variable
 
 set -e
 
-echo "🚀 Motherdeck Production Deployment"
+echo "🚀 Command Production Deployment"
 echo "===================================="
 echo ""
 
@@ -97,8 +97,8 @@ echo "✅ Deployment complete!"
 echo ""
 echo "Next steps:"
 echo "1. Check the live URL provided above"
-echo "2. Test the application: https://motherdeck.vercel.app"
+echo "2. Test the application: https://command.vercel.app"
 echo "3. Verify API endpoints respond"
 echo "4. Test voice button, keyboard shortcuts, and Kanban drag-drop"
 echo ""
-echo "Monitor deployment: https://vercel.com/dashboard/motherdeck"
+echo "Monitor deployment: https://vercel.com/dashboard/command"

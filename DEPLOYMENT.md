@@ -1,4 +1,4 @@
-# Motherdeck Deployment Guide
+# Command Deployment Guide
 
 ## Status ✅
 - ✅ All features implemented and tested locally
@@ -75,7 +75,7 @@ Before deploying, ensure these are set in Vercel project settings:
 AIRTABLE_PAT=your_airtable_pat_here
 AIRTABLE_BASE_ID=your_base_id_here
 ANTHROPIC_API_KEY=your_anthropic_key_here
-NEXT_PUBLIC_APP_NAME=MotherDeck
+NEXT_PUBLIC_APP_NAME=Command
 ```
 
 **Note:** Do NOT commit sensitive keys to git. Set them in Vercel UI or via CLI.
@@ -84,7 +84,7 @@ NEXT_PUBLIC_APP_NAME=MotherDeck
 
 **Option 1: Via Vercel UI (Recommended)**
 1. Go to https://vercel.com/dashboard
-2. Select the "motherdeck" project
+2. Select the "command" project
 3. Go to Settings → Environment Variables
 4. Add/update the 3 required vars (see above)
 5. Deployments → Redeploy with new env vars
@@ -94,7 +94,7 @@ NEXT_PUBLIC_APP_NAME=MotherDeck
 # Assuming VERCEL_TOKEN is exported
 export VERCEL_TOKEN="your_vercel_token_here"
 
-cd /home/claudeclaw/motherdeck
+cd /home/claudeclaw/command
 
 # Set env vars in Vercel
 vercel env add ANTHROPIC_API_KEY
@@ -105,7 +105,7 @@ echo "sk-ant-v3-YOUR_KEY" | vercel env add ANTHROPIC_API_KEY
 vercel deploy --prod
 
 # Output will show live URL like:
-# ✅  Production: https://motherdeck.vercel.app
+# ✅  Production: https://command.vercel.app
 ```
 
 **Option 3: Via GitHub Integration (Already Enabled)**
@@ -117,13 +117,13 @@ vercel deploy --prod
 
 ```bash
 # Test live site
-curl -s https://motherdeck.vercel.app/api/tasks | head -5
+curl -s https://command.vercel.app/api/tasks | head -5
 
 # Verify endpoints exist
-curl -s -X POST https://motherdeck.vercel.app/api/speech-to-text -H "Content-Type: multipart/form-data" 
+curl -s -X POST https://command.vercel.app/api/speech-to-text -H "Content-Type: multipart/form-data" 
 # Should return error about missing audio (that's OK, proves endpoint exists)
 
-curl -s https://motherdeck.vercel.app/ | grep -q "MotherDeck\|Tasks" && echo "✓ Frontend loads"
+curl -s https://command.vercel.app/ | grep -q "Command\|Tasks" && echo "✓ Frontend loads"
 ```
 
 ## Testing Checklist
@@ -172,7 +172,7 @@ If needed to revert:
 # On Vercel UI: Settings → Deployments → Select previous version → Promote
 
 # Or via CLI:
-vercel rollback motherdeck
+vercel rollback command
 ```
 
 ## Support
@@ -182,11 +182,11 @@ For issues during deployment:
 2. Verify environment variables are set
 3. Ensure API keys are valid
 4. Check browser console for client-side errors
-5. Review server logs at https://vercel.com/dashboard/motherdeck/logs
+5. Review server logs at https://vercel.com/dashboard/command/logs
 
 ## Summary
 
-**Motherdeck is production-ready.**
+**Command is production-ready.**
 
 All optional features completed:
 - ✅ Voice transcription endpoint
@@ -199,5 +199,5 @@ All optional features completed:
 **Next Steps:**
 1. Set environment variables in Vercel
 2. Deploy to Vercel (via UI or CLI)
-3. Verify live URL: https://motherdeck.vercel.app
+3. Verify live URL: https://command.vercel.app
 4. Test all features on production

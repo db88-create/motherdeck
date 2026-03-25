@@ -1,4 +1,4 @@
-# Motherdeck Build Summary
+# Command Build Summary
 
 **Date:** March 18, 2026  
 **Status:** ✅ COMPLETE - Ready for Production  
@@ -179,7 +179,7 @@ No errors, no warnings
 
 ### Quick Start (with Vercel Token)
 ```bash
-cd /home/claudeclaw/motherdeck
+cd /home/claudeclaw/command
 
 # Set token
 export VERCEL_TOKEN="your_vercel_token"
@@ -187,12 +187,12 @@ export VERCEL_TOKEN="your_vercel_token"
 # Deploy
 vercel deploy --prod
 
-# Result: https://motherdeck.vercel.app (or custom domain)
+# Result: https://command.vercel.app (or custom domain)
 ```
 
 ### Manual Steps (via Vercel UI)
 1. Login to https://vercel.com/dashboard
-2. Select "motherdeck" project
+2. Select "command" project
 3. Settings → Environment Variables
 4. Add: `AIRTABLE_PAT`, `AIRTABLE_BASE_ID`, `ANTHROPIC_API_KEY`
 5. Deployments → Redeploy
@@ -258,7 +258,7 @@ vercel deploy --prod
 ## 📞 Support & Debugging
 
 ### If deployment fails:
-1. Check Vercel build logs: https://vercel.com/dashboard/motherdeck
+1. Check Vercel build logs: https://vercel.com/dashboard/command
 2. Verify environment variables are set
 3. Test API endpoints locally: `npm run dev`
 4. Check browser console for client errors

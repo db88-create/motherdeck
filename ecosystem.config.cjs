@@ -1,8 +1,8 @@
 module.exports = {
   apps: [{
-    name: 'mother',
-    script: '/home/claudeclaw/motherdeck/start-mother.sh',
-    cwd: '/home/claudeclaw/motherdeck',
+    name: 'command',
+    script: '/home/claudeclaw/command/start-command.sh',
+    cwd: '/home/claudeclaw/command',
     interpreter: '/bin/bash',
     watch: false,
     autorestart: true,
