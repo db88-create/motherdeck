@@ -131,7 +131,7 @@ export async function GET() {
 
   try {
     const issuesQuery = `{
-      issues(filter: { team: { id: { eq: "${LINEAR_TEAM_ID}" } } }, first: 200, orderBy: updatedAt) {
+      issues(filter: { team: { id: { eq: "${LINEAR_TEAM_ID}" } } }, first: 100, orderBy: updatedAt) {
         nodes {
           identifier title
           state { name type }
@@ -139,14 +139,13 @@ export async function GET() {
           labels { nodes { name } }
           project { name }
           parent { identifier }
-          children { nodes { identifier title state { name type } priority labels { nodes { name } } } }
           dueDate updatedAt
         }
       }
     }`;
 
     const projectsQuery = `{
-      projects(filter: { accessibleTeams: { id: { eq: "${LINEAR_TEAM_ID}" } } }, first: 30) {
+      projects(filter: { accessibleTeams: { id: { eq: "${LINEAR_TEAM_ID}" } } }, first: 20) {
         nodes { name state progress targetDate startDate }
       }
     }`;
